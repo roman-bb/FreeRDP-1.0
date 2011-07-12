@@ -28,15 +28,23 @@ set(LIBFREERDP_CORE_SRCS
 	mcs.h
 	nego.c
 	nego.h
+	info.c
+	info.h
 	crypto.c
 	crypto.h
 	credssp.c
 	credssp.h
 	ntlmssp.c
 	ntlmssp.h
+	license.c
+	license.h
+	security.c
+	security.h
 	settings.c
 	connection.c
 	connection.h
+	redirection.c
+	redirection.h
 	rdp.c
 	rdp.h
 	per.c

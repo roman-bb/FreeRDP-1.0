@@ -25,6 +25,11 @@
 #include <freerdp/settings.h>
 #include <freerdp/utils/stream.h>
 
+#ifndef MSG_NOSIGNAL
+#define MSG_NOSIGNAL 0
+#endif
+
+
 typedef struct rdp_tcp rdpTcp;
 typedef boolean (*TcpConnect) (rdpTcp* tcp, const uint8* hostname, uint16 port);
 typedef boolean (*TcpDisconnect) (rdpTcp* tcp);
@@ -34,6 +39,7 @@ struct rdp_tcp
 {
 	int sockfd;
 	uint8 ip_address[32];
+	uint8 mac_address[6];
 	struct rdp_settings* settings;
 	TcpConnect connect;
 	TcpDisconnect disconnect;
