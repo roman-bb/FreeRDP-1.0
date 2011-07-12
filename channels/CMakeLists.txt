@@ -18,4 +18,5 @@
 # limitations under the License.
 
 add_subdirectory(rdpdbg)
+add_subdirectory(rail)
 
