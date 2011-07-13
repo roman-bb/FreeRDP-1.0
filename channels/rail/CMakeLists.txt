@@ -18,9 +18,12 @@
 # limitations under the License.
 
 set(RAIL_SRCS
-	rail_main.c
-	rail_core.h
+	rail_main.c	
 	rail_core.c
+	rail_core.h
+	rail_channel_orders.c
+	rail_channel_orders.h
+	
 )
 
 add_library(rail SHARED ${RAIL_SRCS})

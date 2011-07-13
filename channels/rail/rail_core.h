@@ -358,13 +358,4 @@ rail_handle_server_get_app_resp(
 		RAIL_UNICODE_STRING * app_id
 		);
 
-// RAIL library internal functions
-
-void
-in_rail_unicode_string(STREAM s, RAIL_UNICODE_STRING * string);
-
-void
-free_rail_unicode_string(RAIL_UNICODE_STRING * string);
-
-
 #endif	// __RAIL_CORE_H
