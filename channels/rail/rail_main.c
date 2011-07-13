@@ -27,10 +27,14 @@
 #include <freerdp/utils/memory.h>
 #include <freerdp/utils/svc_plugin.h>
 
+#include "rail_core.h"
+
 typedef struct rail_plugin railPlugin;
 struct rail_plugin
 {
 	rdpSvcPlugin plugin;
+
+	RAIL_SESSION * session;
 };
 
 static void rail_plugin_process_connect(rdpSvcPlugin* plugin)

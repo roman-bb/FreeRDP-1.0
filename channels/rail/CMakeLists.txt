@@ -19,6 +19,8 @@
 
 set(RAIL_SRCS
 	rail_main.c
+	rail_core.h
+	rail_core.c
 )
 
 add_library(rail SHARED ${RAIL_SRCS})

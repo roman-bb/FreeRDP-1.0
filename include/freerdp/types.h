@@ -126,6 +126,16 @@ typedef struct _FRDP_RECT
 }
 FRDP_RECT;
 
+typedef struct _FRDP_RAIL_RECT
+{
+	uint16 left;
+	uint16 top;
+	uint16 right;
+	uint16 bottom;
+}
+FRDP_RAIL_RECT;
+
+
 typedef struct _FRDP_EVENT FRDP_EVENT;
 
 typedef void (*FRDP_EVENT_CALLBACK) (FRDP_EVENT* event);
