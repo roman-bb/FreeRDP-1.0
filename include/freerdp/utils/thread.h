@@ -1,8 +1,8 @@
 /**
- * FreeRDP: A Remote Desktop Protocol Client
- * Memory Utils
+ * FreeRDP: A Remote Desktop Protocol client.
+ * Thread Utils
  *
- * Copyright 2009-2011 Jay Sorg
+ * Copyright 2011 Vic Lee
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,25 @@
  * limitations under the License.
  */
 
-#ifndef __MEMORY_UTILS_H
-#define __MEMORY_UTILS_H
+#ifndef __THREAD_UTILS_H
+#define __THREAD_UTILS_H
 
-#include <stddef.h>
+#ifdef _WIN32
 
-void* xmalloc(size_t size);
-void* xzalloc(size_t size);
-void* xrealloc(void* ptr, size_t size);
-void xfree(void* ptr);
-char* xstrdup(const char* str);
+#define freerdp_thread_create(_proc, _arg) do { \
+	DWORD thread; \
+	CreateThread(NULL, 0, (LPTHREAD_START_ROUTINE)_proc, _arg, 0, &thread); \
+	while (0)
 
-#define xnew(_type) (_type*)xzalloc(sizeof(_type))
+#else
 
-#endif /* __MEMORY_UTILS_H */
+#include <pthread.h>
+#define freerdp_thread_create(_proc, _arg) do { \
+	pthread_t thread; \
+	pthread_create(&thread, 0, _proc, _arg); \
+	pthread_detach(thread); \
+	} while (0)
+
+#endif
+
+#endif /* __THREAD_UTILS_H */

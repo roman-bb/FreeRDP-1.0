@@ -1,8 +1,9 @@
 /**
- * FreeRDP: A Remote Desktop Protocol Client
- * Memory Utils
+ * FreeRDP: A Remote Desktop Protocol client.
+ * Clipboard Virtual Channel
  *
  * Copyright 2009-2011 Jay Sorg
+ * Copyright 2010-2011 Vic Lee
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +18,18 @@
  * limitations under the License.
  */
 
-#ifndef __MEMORY_UTILS_H
-#define __MEMORY_UTILS_H
+#ifndef __CLIPRDR_MAIN_H
+#define __CLIPRDR_MAIN_H
 
-#include <stddef.h>
+#include <freerdp/utils/stream.h>
 
-void* xmalloc(size_t size);
-void* xzalloc(size_t size);
-void* xrealloc(void* ptr, size_t size);
-void xfree(void* ptr);
-char* xstrdup(const char* str);
+typedef struct cliprdr_plugin cliprdrPlugin;
+struct cliprdr_plugin
+{
+	rdpSvcPlugin plugin;
+};
 
-#define xnew(_type) (_type*)xzalloc(sizeof(_type))
+STREAM* cliprdr_packet_new(uint16 msgType, uint16 msgFlags, uint32 dataLen);
+void cliprdr_packet_send(cliprdrPlugin* cliprdr, STREAM* data_out);
 
-#endif /* __MEMORY_UTILS_H */
+#endif /* __CLIPRDR_MAIN_H */

@@ -27,10 +27,12 @@ void ber_read_length(STREAM* s, int* length)
 
 	if (byte & 0x80)
 	{
-		if (byte & ~(0x80) == 2)
-		{
+		byte &= ~(0x80);
+
+		if (byte == 1)
+			stream_read_uint8(s, *length);
+		if (byte == 2)
 			stream_read_uint16_be(s, *length);
-		}
 	}
 	else
 	{
@@ -57,13 +59,20 @@ void ber_write_length(STREAM* s, int length)
 	}
 }
 
-boolean ber_read_universal_tag(STREAM* s, uint8 tag)
+/**
+ * Read BER Universal tag.
+ * @param s stream
+ * @param tag BER universally-defined tag
+ * @return
+ */
+
+boolean ber_read_universal_tag(STREAM* s, uint8 tag, boolean pc)
 {
 	uint8 byte;
 
 	stream_read_uint8(s, byte);
 
-	if (byte != (BER_CLASS_UNIV | BER_PRIMITIVE) | (BER_TAG_MASK & tag))
+	if (byte != (BER_CLASS_UNIV | BER_PC(pc)) | (BER_TAG_MASK & tag))
 		return False;
 
 	return True;
@@ -75,32 +84,17 @@ boolean ber_read_universal_tag(STREAM* s, uint8 tag)
  * @param tag BER universally-defined tag
  */
 
-void ber_write_universal_tag(STREAM* s, uint8 tag)
+void ber_write_universal_tag(STREAM* s, uint8 tag, boolean pc)
 {
-	stream_write_uint8(s, (BER_CLASS_UNIV | BER_PRIMITIVE) | (BER_TAG_MASK & tag));
+	stream_write_uint8(s, (BER_CLASS_UNIV | BER_PC(pc)) | (BER_TAG_MASK & tag));
 }
 
 /**
- * Write BER Application tag.
+ * Read BER Application tag.
  * @param s stream
  * @param tag BER application-defined tag
  * @param length length
  */
-
-void ber_write_application_tag(STREAM* s, uint8 tag, int length)
-{
-	if (tag > 30)
-	{
-		stream_write_uint8(s, (BER_CLASS_APPL | BER_CONSTRUCT) | BER_TAG_MASK);
-		stream_write_uint8(s, tag);
-		ber_write_length(s, length);
-	}
-	else
-	{
-		stream_write_uint8(s, (BER_CLASS_APPL | BER_CONSTRUCT) | (BER_TAG_MASK & tag));
-		ber_write_length(s, length);
-	}
-}
 
 boolean ber_read_application_tag(STREAM* s, uint8 tag, int* length)
 {
@@ -129,6 +123,42 @@ boolean ber_read_application_tag(STREAM* s, uint8 tag, int* length)
 
 		ber_read_length(s, length);
 	}
+
+	return True;
+}
+
+/**
+ * Write BER Application tag.
+ * @param s stream
+ * @param tag BER application-defined tag
+ * @param length length
+ */
+
+void ber_write_application_tag(STREAM* s, uint8 tag, int length)
+{
+	if (tag > 30)
+	{
+		stream_write_uint8(s, (BER_CLASS_APPL | BER_CONSTRUCT) | BER_TAG_MASK);
+		stream_write_uint8(s, tag);
+		ber_write_length(s, length);
+	}
+	else
+	{
+		stream_write_uint8(s, (BER_CLASS_APPL | BER_CONSTRUCT) | (BER_TAG_MASK & tag));
+		ber_write_length(s, length);
+	}
+}
+
+boolean ber_read_contextual_tag(STREAM* s, uint8 tag, int* length, boolean pc)
+{
+	uint8 byte;
+
+	stream_read_uint8(s, byte);
+
+	if (byte != (BER_CLASS_CTXT | BER_PC(pc)) | (BER_TAG_MASK & tag))
+		return False;
+
+	ber_read_length(s, length);
 
 	return True;
 }
@@ -163,7 +193,7 @@ boolean ber_read_enumerated(STREAM* s, uint8* enumerated, uint8 count)
 {
 	int length;
 
-	ber_read_universal_tag(s, BER_TAG_ENUMERATED);
+	ber_read_universal_tag(s, BER_TAG_ENUMERATED, False);
 	ber_read_length(s, &length);
 
 	if (length == 1)
@@ -178,9 +208,18 @@ boolean ber_read_enumerated(STREAM* s, uint8* enumerated, uint8 count)
 	return True;
 }
 
+boolean ber_read_bit_string(STREAM* s, int* length, uint8* padding)
+{
+	ber_read_universal_tag(s, BER_TAG_BIT_STRING, False);
+	ber_read_length(s, length);
+	stream_read_uint8(s, *padding);
+
+	return True;
+}
+
 boolean ber_read_octet_string(STREAM* s, int* length)
 {
-	ber_read_universal_tag(s, BER_TAG_OCTET_STRING);
+	ber_read_universal_tag(s, BER_TAG_OCTET_STRING, False);
 	ber_read_length(s, length);
 
 	return True;
@@ -195,7 +234,7 @@ boolean ber_read_octet_string(STREAM* s, int* length)
 
 void ber_write_octet_string(STREAM* s, uint8* oct_str, int length)
 {
-	ber_write_universal_tag(s, BER_TAG_OCTET_STRING);
+	ber_write_universal_tag(s, BER_TAG_OCTET_STRING, False);
 	ber_write_length(s, length);
 	stream_write(s, oct_str, length);
 }
@@ -208,7 +247,7 @@ void ber_write_octet_string(STREAM* s, uint8* oct_str, int length)
 
 void ber_write_boolean(STREAM* s, boolean value)
 {
-	ber_write_universal_tag(s, BER_TAG_BOOLEAN);
+	ber_write_universal_tag(s, BER_TAG_BOOLEAN, False);
 	ber_write_length(s, 1);
 	stream_write_uint8(s, (value == True) ? 0xFF : 0);
 }
@@ -217,8 +256,14 @@ boolean ber_read_integer(STREAM* s, uint32* value)
 {
 	int length;
 
-	ber_read_universal_tag(s, BER_TAG_INTEGER);
+	ber_read_universal_tag(s, BER_TAG_INTEGER, False);
 	ber_read_length(s, &length);
+
+	if (value == NULL)
+	{
+		stream_seek(s, length);
+		return True;
+	}
 
 	if (length == 1)
 		stream_read_uint8(s, *value);
@@ -231,6 +276,8 @@ boolean ber_read_integer(STREAM* s, uint32* value)
 		stream_read_uint16_be(s, *value);
 		*value += (byte << 16);
 	}
+	else if (length == 4)
+		stream_read_uint32_be(s, *value);
 	else
 		return False;
 
@@ -245,7 +292,7 @@ boolean ber_read_integer(STREAM* s, uint32* value)
 
 void ber_write_integer(STREAM* s, uint32 value)
 {
-	ber_write_universal_tag(s, BER_TAG_INTEGER);
+	ber_write_universal_tag(s, BER_TAG_INTEGER, False);
 
 	if (value <= 0xFF)
 	{
@@ -262,4 +309,11 @@ void ber_write_integer(STREAM* s, uint32 value)
 		ber_write_length(s, 4);
 		stream_write_uint32_be(s, value);
 	}
+}
+
+boolean ber_read_integer_length(STREAM* s, int* length)
+{
+	ber_read_universal_tag(s, BER_TAG_INTEGER, False);
+	ber_read_length(s, length);
+	return True;
 }

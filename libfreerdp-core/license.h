@@ -24,6 +24,7 @@ typedef struct rdp_license rdpLicense;
 
 #include "rdp.h"
 #include "crypto.h"
+#include "certificate.h"
 
 #include <freerdp/freerdp.h>
 #include <freerdp/utils/debug.h>
@@ -45,6 +46,19 @@ typedef struct rdp_license rdpLicense;
 
 #define LICENSE_PREAMBLE_LENGTH		4
 #define LICENSE_PACKET_HEADER_LENGTH	(RDP_PACKET_HEADER_LENGTH + RDP_SECURITY_HEADER_LENGTH + LICENSE_PREAMBLE_LENGTH)
+
+/* Cryptographic Lengths */
+#define CLIENT_RANDOM_LENGTH			32
+#define SERVER_RANDOM_LENGTH			32
+#define MASTER_SECRET_LENGTH			48
+#define PREMASTER_SECRET_LENGTH			48
+#define SESSION_KEY_BLOB_LENGTH			48
+#define MAC_SALT_KEY_LENGTH			16
+#define LICENSING_ENCRYPTION_KEY_LENGTH		16
+#define HWID_PLATFORM_ID_LENGTH			4
+#define HWID_UNIQUE_DATA_LENGTH			16
+#define HWID_LENGTH				20
+#define RSA_MAX_KEY_LENGTH			256
 
 /* Licensing Preamble Flags */
 #define PREAMBLE_VERSION_2_0			0x02
@@ -91,16 +105,24 @@ typedef struct
 
 struct rdp_license
 {
-	uint8 hwid[20];
 	struct rdp_rdp* rdp;
-	uint8 client_random[32];
-	uint8 server_random[32];
+	struct rdp_certificate* certificate;
+	uint8 hwid[HWID_LENGTH];
+	uint8 client_random[CLIENT_RANDOM_LENGTH];
+	uint8 server_random[SERVER_RANDOM_LENGTH];
+	uint8 master_secret[MASTER_SECRET_LENGTH];
+	uint8 premaster_secret[PREMASTER_SECRET_LENGTH];
+	uint8 session_key_blob[SESSION_KEY_BLOB_LENGTH];
+	uint8 mac_salt_key[MAC_SALT_KEY_LENGTH];
+	uint8 licensing_encryption_key[LICENSING_ENCRYPTION_KEY_LENGTH];
 	PRODUCT_INFO* product_info;
 	LICENSE_BLOB* key_exchange_list;
 	LICENSE_BLOB* server_certificate;
 	LICENSE_BLOB* client_user_name;
 	LICENSE_BLOB* client_machine_name;
 	LICENSE_BLOB* encrypted_pre_master_secret;
+	LICENSE_BLOB* encrypted_platform_challenge;
+	LICENSE_BLOB* encrypted_hwid;
 	SCOPE_LIST* scope_list;
 };
 
@@ -108,6 +130,7 @@ void license_send(rdpLicense* license, STREAM* s, uint8 type);
 void license_recv(rdpLicense* license, STREAM* s);
 STREAM* license_send_stream_init(rdpLicense* license);
 
+void license_generate_randoms(rdpLicense* license);
 void license_generate_keys(rdpLicense* license);
 void license_generate_hwid(rdpLicense* license);
 
@@ -133,7 +156,7 @@ void license_read_error_alert_packet(rdpLicense* license, STREAM* s);
 void license_write_new_license_request_packet(rdpLicense* license, STREAM* s);
 void license_send_new_license_request_packet(rdpLicense* license);
 
-void license_write_platform_challenge_response_packet(rdpLicense* license, STREAM* s);
+void license_write_platform_challenge_response_packet(rdpLicense* license, STREAM* s, uint8* mac_data);
 void license_send_platform_challenge_response_packet(rdpLicense* license);
 
 rdpLicense* license_new(rdpRdp* rdp);
