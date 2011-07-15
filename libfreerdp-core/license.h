@@ -58,7 +58,7 @@ typedef struct rdp_license rdpLicense;
 #define HWID_PLATFORM_ID_LENGTH			4
 #define HWID_UNIQUE_DATA_LENGTH			16
 #define HWID_LENGTH				20
-#define RSA_MAX_KEY_LENGTH			256
+#define LICENSING_PADDING_SIZE			8
 
 /* Licensing Preamble Flags */
 #define PREAMBLE_VERSION_2_0			0x02
@@ -80,6 +80,23 @@ typedef struct rdp_license rdpLicense;
 
 /* Key Exchange Algorithms */
 #define KEY_EXCHANGE_ALG_RSA			0x00000001
+
+/* Licensing Error Codes */
+#define ERR_INVALID_SERVER_CERTIFICATE		0x00000001
+#define ERR_NO_LICENSE				0x00000002
+#define ERR_INVALID_MAC				0x00000003
+#define ERR_INVALID_SCOPE			0x00000004
+#define ERR_NO_LICENSE_SERVER			0x00000006
+#define STATUS_VALID_CLIENT			0x00000007
+#define ERR_INVALID_CLIENT			0x00000008
+#define ERR_INVALID_PRODUCT_ID			0x0000000B
+#define ERR_INVALID_MESSAGE_LENGTH		0x0000000C
+
+/* Licensing State Transition Codes */
+#define ST_TOTAL_ABORT				0x00000001
+#define ST_NO_TRANSITION			0x00000002
+#define ST_RESET_PHASE_TO_START			0x00000003
+#define ST_RESEND_LAST_MESSAGE			0x00000004
 
 typedef struct
 {
@@ -103,11 +120,22 @@ typedef struct
 	LICENSE_BLOB* array;
 } SCOPE_LIST;
 
+typedef enum
+{
+	LICENSE_STATE_AWAIT,
+	LICENSE_STATE_PROCESS,
+	LICENSE_STATE_ABORTED,
+	LICENSE_STATE_COMPLETED
+} LICENSE_STATE;
+
 struct rdp_license
 {
+	LICENSE_STATE state;
 	struct rdp_rdp* rdp;
 	struct rdp_certificate* certificate;
 	uint8 hwid[HWID_LENGTH];
+	uint8 modulus[MODULUS_MAX_SIZE];
+	uint8 exponent[EXPONENT_MAX_SIZE];
 	uint8 client_random[CLIENT_RANDOM_LENGTH];
 	uint8 server_random[SERVER_RANDOM_LENGTH];
 	uint8 master_secret[MASTER_SECRET_LENGTH];
@@ -116,11 +144,13 @@ struct rdp_license
 	uint8 mac_salt_key[MAC_SALT_KEY_LENGTH];
 	uint8 licensing_encryption_key[LICENSING_ENCRYPTION_KEY_LENGTH];
 	PRODUCT_INFO* product_info;
+	LICENSE_BLOB* error_info;
 	LICENSE_BLOB* key_exchange_list;
 	LICENSE_BLOB* server_certificate;
 	LICENSE_BLOB* client_user_name;
 	LICENSE_BLOB* client_machine_name;
-	LICENSE_BLOB* encrypted_pre_master_secret;
+	LICENSE_BLOB* platform_challenge;
+	LICENSE_BLOB* encrypted_premaster_secret;
 	LICENSE_BLOB* encrypted_platform_challenge;
 	LICENSE_BLOB* encrypted_hwid;
 	SCOPE_LIST* scope_list;
@@ -133,6 +163,8 @@ STREAM* license_send_stream_init(rdpLicense* license);
 void license_generate_randoms(rdpLicense* license);
 void license_generate_keys(rdpLicense* license);
 void license_generate_hwid(rdpLicense* license);
+void license_encrypt_premaster_secret(rdpLicense* license);
+void license_decrypt_platform_challenge(rdpLicense* license);
 
 PRODUCT_INFO* license_new_product_info();
 void license_free_product_info(PRODUCT_INFO* productInfo);

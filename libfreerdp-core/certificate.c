@@ -168,6 +168,20 @@ void certificate_read_x509_certificate(CERT_BLOB* cert, CERT_INFO* info)
 	ber_read_sequence_of_tag(s, &length); /* SEQUENCE */
 
 	ber_read_integer_length(s, &modulus_length); /* modulus (INTEGER) */
+
+	/* skip zero padding, if any */
+	do
+	{
+		stream_peek_uint8(s, padding);
+
+		if (padding == 0)
+		{
+			stream_seek(s, 1);
+			modulus_length--;
+		}
+	}
+	while (padding == 0);
+
 	freerdp_blob_alloc(&info->modulus, modulus_length);
 	stream_read(s, info->modulus.data, modulus_length);
 
@@ -237,7 +251,7 @@ void certificate_read_server_x509_certificate_chain(rdpCertificate* certificate,
 	uint32 certLength;
 	uint32 numCertBlobs;
 
-	printf("\nServer X.509 Certificate Chain\n");
+	DEBUG_CERTIFICATE("Server X.509 Certificate Chain");
 
 	stream_read_uint32(s, numCertBlobs); /* numCertBlobs */
 
@@ -247,7 +261,7 @@ void certificate_read_server_x509_certificate_chain(rdpCertificate* certificate,
 	{
 		stream_read_uint32(s, certLength);
 
-		printf("\nX.509 Certificate #%d, length:%d", i + 1, certLength);
+		DEBUG_CERTIFICATE("\nX.509 Certificate #%d, length:%d", i + 1, certLength);
 
 		certificate->x509_cert_chain->array[i].data = (uint8*) xmalloc(certLength);
 		stream_read(s, certificate->x509_cert_chain->array[i].data, certLength);
@@ -255,17 +269,17 @@ void certificate_read_server_x509_certificate_chain(rdpCertificate* certificate,
 
 		if (numCertBlobs - i == 2)
 		{
-			printf(", License Server Certificate\n");
+			CERT_INFO cert_info;
+			DEBUG_CERTIFICATE("License Server Certificate");
+			certificate_read_x509_certificate(&certificate->x509_cert_chain->array[i], &cert_info);
+			DEBUG_LICENSE("modulus length:%d", cert_info.modulus.length);
 		}
 		else if (numCertBlobs - i == 1)
 		{
-			printf(", Terminal Server Certificate\n");
-			//freerdp_hexdump(certificate->x509_cert_chain->array[i].data, certificate->x509_cert_chain->array[i].length);
+			DEBUG_CERTIFICATE("Terminal Server Certificate");
 			certificate_read_x509_certificate(&certificate->x509_cert_chain->array[i], &certificate->cert_info);
-			printf("modulus length:%d\n", certificate->cert_info.modulus.length);
+			DEBUG_CERTIFICATE("modulus length:%d", certificate->cert_info.modulus.length);
 		}
-		else
-			printf("\n");
 	}
 }
 
