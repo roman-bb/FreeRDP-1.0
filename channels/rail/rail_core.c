@@ -165,7 +165,7 @@ void register_mock_ui_for_session(RAIL_SESSION* session)
 	ui->ui_on_rail_exec_result_receved = mock_ui_on_rail_exec_result_receved;
 	ui->ui_on_rail_server_sysparam_received = mock_ui_on_rail_server_sysparam_received;
 
-	rail_register_ui_listener(session, ui);
+
 }
 //////////////////////////////////////////////////////////////////////////////
 

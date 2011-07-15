@@ -31,4 +31,4 @@ set_target_properties(rail PROPERTIES PREFIX "")
 
 target_link_libraries(rail freerdp-utils)
 
-install(TARGETS rail DESTINATION lib/freerdp)
+install(TARGETS rail DESTINATION ${FREERDP_PLUGIN_PATH})

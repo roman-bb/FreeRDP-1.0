@@ -33,6 +33,7 @@
 #include "test_transport.h"
 #include "test_chanman.h"
 #include "test_cliprdr.h"
+#include "test_rail.h"
 #include "test_freerdp.h"
 
 void dump_data(unsigned char * p, int len, int width, char* name)
@@ -127,11 +128,16 @@ int main(int argc, char* argv[])
 		add_transport_suite();
 		add_chanman_suite();
 		add_cliprdr_suite();
+		add_rail_suite();
 	}
 	else
 	{
 		while (*pindex < argc)
 		{
+			if (strcmp("rail", argv[*pindex]) == 0)
+			{
+				add_rail_suite();
+			}
 			if (strcmp("color", argv[*pindex]) == 0)
 			{
 				add_color_suite();
