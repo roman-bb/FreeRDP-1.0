@@ -224,7 +224,9 @@ boolean mcs_read_domain_mcspdu_header(STREAM* s, enum DomainMCSPDU* domainMCSPDU
 	enum DomainMCSPDU MCSPDU;
 
 	*length = tpkt_read_header(s);
-	tpdu_read_data(s);
+
+	if (tpdu_read_data(s) == 0)
+		return False;
 
 	MCSPDU = *domainMCSPDU;
 	per_read_choice(s, &choice);
@@ -282,7 +284,7 @@ static void mcs_init_domain_parameters(DomainParameters* domainParameters,
 void mcs_read_domain_parameters(STREAM* s, DomainParameters* domainParameters)
 {
 	int length;
-	ber_read_sequence_of_tag(s, &length);
+	ber_read_sequence_tag(s, &length);
 	ber_read_integer(s, &(domainParameters->maxChannelIds));
 	ber_read_integer(s, &(domainParameters->maxUserIds));
 	ber_read_integer(s, &(domainParameters->maxTokenIds));
@@ -320,7 +322,7 @@ void mcs_write_domain_parameters(STREAM* s, DomainParameters* domainParameters)
 	length = (em - bm) - 2;
 	stream_set_mark(s, bm);
 
-	ber_write_sequence_of_tag(s, length);
+	ber_write_sequence_tag(s, length);
 	stream_set_mark(s, em);
 }
 
@@ -448,7 +450,9 @@ void mcs_recv_connect_response(rdpMcs* mcs)
 	transport_read(mcs->transport, s);
 
 	tpkt_read_header(s);
-	tpdu_read_data(s);
+
+	if (tpdu_read_data(s) == 0)
+		return;
 
 	ber_read_application_tag(s, MCS_TYPE_CONNECT_RESPONSE, &length);
 	ber_read_enumerated(s, &result, MCS_Result_enum_length);

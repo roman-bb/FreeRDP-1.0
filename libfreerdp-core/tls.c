@@ -40,12 +40,22 @@ boolean tls_connect(rdpTls* tls)
 		return False;
 	}
 
-	do
+	while (1)
 	{
-		/* SSL_WANT_READ errors are normal, just try again if it happens */
 		connection_status = SSL_connect(tls->ssl);
+
+		/*
+		 * SSL_WANT_READ and SSL_WANT_WRITE errors are normal,
+		 * just try again if it happens
+		 */
+
+		if (connection_status == SSL_ERROR_WANT_READ)
+			continue;
+		else if (connection_status == SSL_ERROR_WANT_WRITE)
+			continue;
+		else
+			break;
 	}
-	while (SSL_get_error(tls->ssl, connection_status) == SSL_ERROR_WANT_READ);
 
 	if (connection_status < 0)
 	{
@@ -82,7 +92,7 @@ int tls_read(rdpTls* tls, uint8* data, int length)
 				break;
 
 			default:
-				tls_print_error("SSL_read", tls->ssl, status);
+				//tls_print_error("SSL_read", tls->ssl, status);
 				return -1;
 				break;
 		}

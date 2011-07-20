@@ -81,11 +81,11 @@ endif()
 
 # Sub-directories
 add_subdirectory(include)
-add_subdirectory(libfreerdp-asn1)
 add_subdirectory(libfreerdp-utils)
 add_subdirectory(libfreerdp-kbd)
 add_subdirectory(libfreerdp-gdi)
 add_subdirectory(libfreerdp-chanman)
 add_subdirectory(libfreerdp-core)
 add_subdirectory(channels)
-add_subdirectory(freerdp-ui)
+
+add_subdirectory(client)
