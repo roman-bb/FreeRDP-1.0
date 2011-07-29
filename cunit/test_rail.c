@@ -58,12 +58,9 @@ int add_rail_suite(void)
 }
 
 static int test_rail_on_client_send_channel_data_to_server(
-		rdpInst* inst, int chan_id, char* data, int data_size)
+	freerdp* freerdp, int channelId, uint8* data, int size
+	)
 {
-	/*
-	 * In there we must to check test hex PDU blobs according to receive number.
-	 * */
-	printf("chan_id %d data_size %d\n", chan_id, data_size);
 }
 
 
@@ -71,13 +68,13 @@ void test_rail_plugin(void)
 {
 	rdpChanMan* chan_man;
 	rdpSettings settings = { 0 };
-	rdpInst inst = { 0 };
+	freerdp inst = { 0 };
 	FRDP_EVENT* event;
 	int i;
 
 	settings.hostname = "testhost";
 	inst.settings = &settings;
-	inst.rdp_channel_data = test_rail_on_client_send_channel_data_to_server;
+	inst.ChannelDataInput = test_rail_on_client_send_channel_data_to_server;
 
 	chan_man = freerdp_chanman_new();
 

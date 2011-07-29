@@ -221,8 +221,14 @@ struct rdp_settings
 
 	boolean frame_acknowledge;
 
-	uint8* app_name;
-	boolean remote_app;
+	boolean rail_mode_enabled;
+	uint8*  rail_exe_or_file;
+	uint8*  rail_arguments;
+	boolean rail_by_server_supported;
+	boolean rail_langbar_supported;
+	boolean rail_window_supported;
+	uint16  rail_icon_cache_entries_number;
+	uint8   rail_icon_cache_number;
 
 	int rfx_flags;
 	int ui_decode_flags;

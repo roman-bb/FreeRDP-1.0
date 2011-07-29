@@ -105,6 +105,15 @@ rdpSettings* settings_new()
 
 		settings->uniconv = freerdp_uniconv_new();
 		gethostname(settings->client_hostname, sizeof(settings->client_hostname) - 1);
+
+		settings->rail_mode_enabled = False;
+		settings->rail_exe_or_file = "";
+		settings->rail_arguments = "";
+		settings->rail_window_supported = False;
+		settings->rail_by_server_supported = False;
+		settings->rail_icon_cache_number = 0;
+		settings->rail_icon_cache_entries_number = 0;
+		settings->rail_langbar_supported = False;
 	}
 
 	return settings;

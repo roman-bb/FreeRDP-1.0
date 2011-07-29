@@ -1099,13 +1099,17 @@ void rdp_read_remote_programs_capability_set(STREAM* s, rdpSettings* settings)
 
 	stream_read_uint32(s, railSupportLevel); /* railSupportLevel (4 bytes) */
 
-	if ((railSupportLevel & RAIL_LEVEL_SUPPORTED) == 0)
+	settings->rail_by_server_supported = False;
+	settings->rail_langbar_supported = False;
+
+	if ((railSupportLevel & RAIL_LEVEL_SUPPORTED) != 0)
 	{
-		if (settings->remote_app == True)
-		{
-			/* RemoteApp Failure! */
-			settings->remote_app = False;
-		}
+		settings->rail_by_server_supported = True;
+	}
+
+	if ((railSupportLevel & RAIL_LEVEL_DOCKED_LANGBAR_SUPPORTED) != 0)
+	{
+		settings->rail_langbar_supported = True;
 	}
 }
 
@@ -1123,8 +1127,11 @@ void rdp_write_remote_programs_capability_set(STREAM* s, rdpSettings* settings)
 
 	header = rdp_capability_set_start(s);
 
-	if (settings->remote_app)
-		railSupportLevel = RAIL_LEVEL_SUPPORTED | RAIL_LEVEL_DOCKED_LANGBAR_SUPPORTED;
+	if (settings->rail_mode_enabled)
+	{
+		railSupportLevel = RAIL_LEVEL_SUPPORTED |
+				RAIL_LEVEL_DOCKED_LANGBAR_SUPPORTED;
+	}
 
 	stream_read_uint32(s, railSupportLevel); /* railSupportLevel (4 bytes) */
 
@@ -1140,9 +1147,32 @@ void rdp_write_remote_programs_capability_set(STREAM* s, rdpSettings* settings)
 
 void rdp_read_window_list_capability_set(STREAM* s, rdpSettings* settings)
 {
-	stream_seek_uint32(s); /* wndSupportLevel (4 bytes) */
-	stream_seek_uint8(s); /* numIconCaches (1 byte) */
-	stream_seek_uint16(s); /* numIconCacheEntries (2 bytes) */
+	// TODO:
+	// 2011-07-27: In current time icon cache is not supported by any
+	//             Microsoft implementation of server or client.
+	//
+	// But we must process this values according to 3.2.5.1.4
+	//
+
+	uint8 numIconCaches;
+	uint16 numIconCacheEntries;
+	uint32 wndSupportLevel;
+
+	stream_read_uint32(s, wndSupportLevel); /* wndSupportLevel (4 bytes) */
+	stream_read_uint8(s, numIconCaches); /* numIconCaches (1 byte) */
+	stream_read_uint16(s, numIconCacheEntries); /* numIconCacheEntries (2 bytes) */
+
+	settings->rail_window_supported = False;
+	settings->rail_icon_cache_number = MIN(3, numIconCaches);
+	settings->rail_icon_cache_entries_number = MIN(12, numIconCacheEntries);
+
+	if (
+		(wndSupportLevel == WINDOW_LEVEL_SUPPORTED) ||
+		(wndSupportLevel == WINDOW_LEVEL_SUPPORTED_EX)
+	   )
+	{
+		settings->rail_window_supported = True;
+	}
 }
 
 /**
@@ -1159,11 +1189,14 @@ void rdp_write_window_list_capability_set(STREAM* s, rdpSettings* settings)
 
 	header = rdp_capability_set_start(s);
 
-	wndSupportLevel = WINDOW_LEVEL_SUPPORTED | WINDOW_LEVEL_SUPPORTED_EX;
+	// According to 2.2.1.1.2 WndSupportLevel is not a bit-mask.
+	// It's a integer windowing support level.
+	// So we need to set it in maximum current value.
+	wndSupportLevel = WINDOW_LEVEL_SUPPORTED_EX;
 
 	stream_write_uint32(s, wndSupportLevel); /* wndSupportLevel (4 bytes) */
-	stream_write_uint8(s, 3); /* numIconCaches (1 byte) */
-	stream_write_uint16(s, 12); /* numIconCacheEntries (2 bytes) */
+	stream_write_uint8(s, settings->rail_icon_cache_number); /* numIconCaches (1 byte) */
+	stream_write_uint16(s, settings->rail_icon_cache_entries_number); /* numIconCacheEntries (2 bytes) */
 
 	rdp_capability_set_finish(s, header, CAPSET_TYPE_WINDOW);
 }

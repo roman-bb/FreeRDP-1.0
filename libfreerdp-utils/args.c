@@ -187,16 +187,26 @@ int freerdp_parse_args(rdpSettings* settings, int argc, char** argv,
 		{
 			settings->mouse_motion = 0;
 		}
-		else if (strcmp("--app", argv[index]) == 0)
+		else if (strcmp("--remote-app", argv[index]) == 0)
 		{
 			index++;
 			if (index == argc)
 			{
-				printf("missing application name\n");
+				printf("missing RemoteApp program\n");
 				return 0;
 			}
-			settings->app_name = (uint8*) xstrdup(argv[index]);
-			settings->remote_app = True;
+			settings->rail_exe_or_file = (uint8*) xstrdup(argv[index]);
+			settings->rail_mode_enabled = True;
+		}
+		else if (strcmp("--remote-app-arguments", argv[index]) == 0)
+		{
+			index++;
+			if (index == argc)
+			{
+				printf("missing RemoteApp program arguments\n");
+				return 0;
+			}
+			settings->rail_arguments = (uint8*) xstrdup(argv[index]);
 		}
 		else if (strcmp("-x", argv[index]) == 0)
 		{

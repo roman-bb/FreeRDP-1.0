@@ -283,6 +283,11 @@ void rdp_write_info_packet(STREAM* s, rdpSettings* settings)
 	if (settings->compression)
 		flags |= INFO_COMPRESSION | PACKET_COMPR_TYPE_64K;
 
+	if (settings->rail_mode_enabled)
+	{
+		flags |= INFO_RAIL;
+	}
+
 	domain = (uint8*)freerdp_uniconv_out(settings->uniconv, settings->domain, &length);
 	cbDomain = length;
 
