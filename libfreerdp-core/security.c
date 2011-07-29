@@ -40,7 +40,7 @@ static uint8 pad2[48] =
 	"\x5C\x5C\x5C\x5C\x5C\x5C\x5C\x5C"
 };
 
-void security_salted_hash(uint8* salt, uint8* input, int length, uint8* salt1, uint8* salt2, uint8* output)
+static void security_salted_hash(uint8* salt, uint8* input, int length, uint8* salt1, uint8* salt2, uint8* output)
 {
 	CryptoMd5 md5;
 	CryptoSha1 sha1;
@@ -63,10 +63,10 @@ void security_salted_hash(uint8* salt, uint8* input, int length, uint8* salt1, u
 	crypto_md5_final(md5, output);
 }
 
-void security_premaster_hash(uint8* input, int length, uint8* premaster_secret, uint8* client_random, uint8* server_random, uint8* output)
+static void security_premaster_hash(char* input, int length, uint8* premaster_secret, uint8* client_random, uint8* server_random, uint8* output)
 {
 	/* PremasterHash(Input) = SaltedHash(PremasterSecret, Input, ClientRandom, ServerRandom) */
-	security_salted_hash(premaster_secret, input, length, client_random, server_random, output);
+	security_salted_hash(premaster_secret, (uint8*)input, length, client_random, server_random, output);
 }
 
 void security_master_secret(uint8* premaster_secret, uint8* client_random, uint8* server_random, uint8* output)
@@ -77,10 +77,10 @@ void security_master_secret(uint8* premaster_secret, uint8* client_random, uint8
 	security_premaster_hash("CCC", 3, premaster_secret, client_random, server_random, &output[32]);
 }
 
-void security_master_hash(uint8* input, int length, uint8* master_secret, uint8* client_random, uint8* server_random, uint8* output)
+static void security_master_hash(char* input, int length, uint8* master_secret, uint8* client_random, uint8* server_random, uint8* output)
 {
 	/* MasterHash(Input) = SaltedHash(MasterSecret, Input, ServerRandom, ClientRandom) */
-	security_salted_hash(master_secret, input, length, server_random, client_random, output);
+	security_salted_hash(master_secret, (uint8*)input, length, server_random, client_random, output);
 }
 
 void security_session_key_blob(uint8* master_secret, uint8* client_random, uint8* server_random, uint8* output)
@@ -145,3 +145,30 @@ void security_mac_data(uint8* mac_salt_key, uint8* data, uint32 length, uint8* o
 	crypto_md5_final(md5, output);
 }
 
+void security_mac_signature(uint8* mac_key, int mac_key_length, uint8* data, uint32 length, uint8* output)
+{
+	CryptoMd5 md5;
+	CryptoSha1 sha1;
+	uint8 length_le[4];
+	uint8 md5_digest[16];
+	uint8 sha1_digest[20];
+
+	security_uint32_le(length_le, length); /* length must be little-endian */
+
+	/* SHA1_Digest = SHA1(MACKeyN + pad1 + length + data) */
+	sha1 = crypto_sha1_init();
+	crypto_sha1_update(sha1, mac_key, mac_key_length); /* MacKeyN */
+	crypto_sha1_update(sha1, pad1, sizeof(pad1)); /* pad1 */
+	crypto_sha1_update(sha1, length_le, sizeof(length_le)); /* length */
+	crypto_sha1_update(sha1, data, length); /* data */
+	crypto_sha1_final(sha1, sha1_digest);
+
+	/* MACSignature = First64Bits(MD5(MACKeyN + pad2 + SHA1_Digest)) */
+	md5 = crypto_md5_init();
+	crypto_md5_update(md5, mac_key, mac_key_length); /* MacKeyN */
+	crypto_md5_update(md5, pad2, sizeof(pad2)); /* pad2 */
+	crypto_md5_update(md5, sha1_digest, 20); /* SHA1_Digest */
+	crypto_md5_final(md5, md5_digest);
+
+	memcpy(output, md5_digest, 8);
+}

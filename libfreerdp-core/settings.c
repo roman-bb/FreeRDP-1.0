@@ -17,7 +17,13 @@
  * limitations under the License.
  */
 
+#include "config.h"
+#include "capabilities.h"
 #include <freerdp/utils/memory.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #include <freerdp/settings.h>
 
@@ -43,19 +49,59 @@ rdpSettings* settings_new()
 		settings->kbd_subtype = 0;
 		settings->kbd_fn_keys = 0;
 		settings->kbd_layout = 0x409;
-		settings->encryption = 1;
+		settings->encryption = False;
 
 		settings->performance_flags =
 				PERF_DISABLE_FULLWINDOWDRAG |
 				PERF_DISABLE_MENUANIMATIONS |
 				PERF_DISABLE_WALLPAPER;
 
-		settings->encryption_methods =
-				ENCRYPTION_40BIT_FLAG |
-				ENCRYPTION_128BIT_FLAG;
+		settings->auto_reconnection = True;
 
-		settings->client_dir = xmalloc(strlen(client_dll));
-		strcpy(settings->client_dir, client_dll);
+		settings->encryption_method = ENCRYPTION_METHOD_NONE;
+		settings->encryption_level = ENCRYPTION_LEVEL_NONE;
+
+		settings->order_support[NEG_DSTBLT_INDEX] = True;
+		settings->order_support[NEG_PATBLT_INDEX] = True;
+		settings->order_support[NEG_SCRBLT_INDEX] = True;
+		settings->order_support[NEG_MEMBLT_INDEX] = True;
+		settings->order_support[NEG_MEM3BLT_INDEX] = True;
+		settings->order_support[NEG_DRAWNINEGRID_INDEX] = True;
+		settings->order_support[NEG_LINETO_INDEX] = True;
+		settings->order_support[NEG_MULTI_DRAWNINEGRID_INDEX] = True;
+		settings->order_support[NEG_SAVEBITMAP_INDEX] = True;
+		settings->order_support[NEG_MULTIDSTBLT_INDEX] = True;
+		settings->order_support[NEG_MULTIPATBLT_INDEX] = True;
+		settings->order_support[NEG_MULTISCRBLT_INDEX] = True;
+		settings->order_support[NEG_MULTIOPAQUERECT_INDEX] = True;
+		settings->order_support[NEG_FAST_INDEX_INDEX] = True;
+		settings->order_support[NEG_POLYGON_SC_INDEX] = True;
+		settings->order_support[NEG_POLYGON_CB_INDEX] = True;
+		settings->order_support[NEG_POLYLINE_INDEX] = True;
+		settings->order_support[NEG_FAST_GLYPH_INDEX] = True;
+		settings->order_support[NEG_ELLIPSE_SC_INDEX] = True;
+		settings->order_support[NEG_ELLIPSE_CB_INDEX] = True;
+		settings->order_support[NEG_INDEX_INDEX] = True;
+
+		settings->color_pointer = True;
+		settings->large_pointer = True;
+
+		settings->draw_gdi_plus = True;
+
+		settings->frame_marker = False;
+		settings->bitmap_cache_v3 = False;
+
+		settings->bitmap_cache = True;
+		settings->persistent_bitmap_cache = False;
+
+		settings->offscreen_bitmap_cache = True;
+		settings->offscreen_bitmap_cache_size = 7680;
+		settings->offscreen_bitmap_cache_entries = 100;
+
+		settings->draw_nine_grid_cache_size = 2560;
+		settings->draw_nine_grid_cache_entries = 256;
+
+		settings->client_dir = xstrdup(client_dll);
 
 		settings->uniconv = freerdp_uniconv_new();
 		gethostname(settings->client_hostname, sizeof(settings->client_hostname) - 1);
@@ -69,6 +115,13 @@ void settings_free(rdpSettings* settings)
 	if (settings != NULL)
 	{
 		freerdp_uniconv_free(settings->uniconv);
+		xfree(settings->hostname);
+		xfree(settings->username);
+		xfree(settings->password);
+		xfree(settings->domain);
+		xfree(settings->shell);
+		xfree(settings->directory);
+		xfree(settings->client_dir);
 		xfree(settings);
 	}
 }

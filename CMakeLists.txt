@@ -17,7 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 project(FreeRDP C)
 set(CMAKE_COLOR_MAKEFILE ON)
 
@@ -77,15 +77,16 @@ endif()
 find_package(CUnit)
 if(CUNIT_FOUND)
    add_subdirectory(cunit)
+   enable_testing()
 endif()
 
 # Sub-directories
 add_subdirectory(include)
-add_subdirectory(libfreerdp-asn1)
 add_subdirectory(libfreerdp-utils)
 add_subdirectory(libfreerdp-kbd)
 add_subdirectory(libfreerdp-gdi)
 add_subdirectory(libfreerdp-chanman)
 add_subdirectory(libfreerdp-core)
 add_subdirectory(channels)
-add_subdirectory(freerdp-ui)
+
+add_subdirectory(client)

@@ -20,6 +20,10 @@
 add_definitions(-DEXT_PATH="/usr/lib/freerdp/extensions")
 
 set(LIBFREERDP_CORE_SRCS
+	activation.c
+	activation.h
+	bitmap.c
+	bitmap.h
 	ber.c
 	ber.h
 	gcc.c
@@ -43,6 +47,10 @@ set(LIBFREERDP_CORE_SRCS
 	security.c
 	security.h
 	settings.c
+	orders.c
+	orders.h
+	capabilities.c
+	capabilities.h
 	certificate.c
 	certificate.h
 	connection.c
@@ -63,17 +71,15 @@ set(LIBFREERDP_CORE_SRCS
 	tpkt.h
 	transport.c
 	transport.h
-	bitmap.c
+	update.c
+	update.h
 )
-
-include_directories(../libfreerdp-asn1)
 
 add_library(freerdp-core SHARED ${LIBFREERDP_CORE_SRCS})
 
 target_link_libraries(freerdp-core z)
 target_link_libraries(freerdp-core ssl)
 target_link_libraries(freerdp-core crypto)
-target_link_libraries(freerdp-core freerdp-asn1)
 target_link_libraries(freerdp-core freerdp-utils)
 
 install(TARGETS freerdp-core DESTINATION lib)
