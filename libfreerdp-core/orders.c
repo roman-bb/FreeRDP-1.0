@@ -18,6 +18,7 @@
  */
 
 #include "orders.h"
+#include "orders_rail.h"
 
 uint8 PRIMARY_DRAWING_ORDER_STRINGS[][20] =
 {
@@ -941,10 +942,10 @@ void update_recv_draw_gdiplus_cache_end_order(rdpUpdate* update, STREAM* s)
 
 }
 
-void update_recv_windowing_order(rdpUpdate* update, STREAM* s)
-{
-
-}
+//void update_recv_windowing_order(rdpUpdate* update, STREAM* s)
+//{
+//
+//}
 
 void update_recv_desktop_composition_order(rdpUpdate* update, STREAM* s)
 {
@@ -1215,11 +1216,13 @@ void update_recv_secondary_order(rdpUpdate* update, STREAM* s, uint8 flags)
 	stream_set_mark(s, next);
 }
 
+
+
 void update_recv_altsec_order(rdpUpdate* update, STREAM* s, uint8 flags)
 {
 	uint8 orderType;
 
-	orderType = flags >>= 2; /* orderType is in higher 6 bits of flags field */
+	orderType = (flags >> 2); /* orderType is in higher 6 bits of flags field */
 
 	printf("%s Alternate Secondary Drawing Order\n", ALTSEC_DRAWING_ORDER_STRINGS[orderType]);
 

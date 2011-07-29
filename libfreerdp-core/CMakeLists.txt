@@ -51,6 +51,8 @@ set(LIBFREERDP_CORE_SRCS
 	settings.c
 	orders.c
 	orders.h
+	orders_rail.c
+	orders_rail.h
 	freerdp.c
 	capabilities.c
 	capabilities.h
