@@ -1,8 +1,8 @@
 /**
  * FreeRDP: A Remote Desktop Protocol Client
- * FreeRDP Test UI
+ * DirectFB Event Handling
  *
- * Copyright 2010 Marc-Andre Moreau <marcandre.moreau@gmail.com>
+ * Copyright 2011 Marc-Andre Moreau <marcandre.moreau@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,11 @@
  * limitations under the License.
  */
 
-#include "gdi.h"
+#ifndef __DF_EVENT_H
+#define __DF_EVENT_H
 
-#include <freerdp/freerdp.h>
-#include <freerdp/utils/args.h>
+#include "dfreerdp.h"
 
-freerdp* instance;
-rdpSettings* settings;
+boolean df_event_process(freerdp* instance, DFBEvent* event);
 
-int main(int argc, char* argv[])
-{
-	instance = freerdp_new();
-
-	settings = instance->settings;
-
-	freerdp_parse_args(settings, argc, argv, NULL, NULL, NULL, NULL);
-
-	gdi_init(instance, 0);
-
-	instance->Connect(instance);
-
-	freerdp_free(instance);
-
-	return 0;
-}
+#endif /* __DF_EVENT_H */

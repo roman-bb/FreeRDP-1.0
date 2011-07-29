@@ -34,6 +34,8 @@ set(LIBFREERDP_CORE_SRCS
 	nego.h
 	info.c
 	info.h
+	input.c
+	input.h
 	crypto.c
 	crypto.h
 	credssp.c
@@ -49,6 +51,7 @@ set(LIBFREERDP_CORE_SRCS
 	settings.c
 	orders.c
 	orders.h
+	freerdp.c
 	capabilities.c
 	capabilities.h
 	certificate.c

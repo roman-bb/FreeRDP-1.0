@@ -1,8 +1,8 @@
 /**
  * FreeRDP: A Remote Desktop Protocol Client
- * FreeRDP Test UI
+ * DirectFB Client
  *
- * Copyright 2010 Marc-Andre Moreau <marcandre.moreau@gmail.com>
+ * Copyright 2011 Marc-Andre Moreau <marcandre.moreau@gmail.com>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,27 +17,31 @@
  * limitations under the License.
  */
 
+#ifndef __DFREERDP_H
+#define __DFREERDP_H
+
 #include "gdi.h"
-
+#include <stdio.h>
+#include <unistd.h>
+#include <directfb.h>
 #include <freerdp/freerdp.h>
-#include <freerdp/utils/args.h>
 
-freerdp* instance;
-rdpSettings* settings;
+#define SET_DFI(_instance, _dfi) (_instance)->param1 = _dfi
+#define GET_DFI(_instance) ((dfInfo *) ((_instance)->param1))
 
-int main(int argc, char* argv[])
+struct df_info
 {
-	instance = freerdp_new();
+	int read_fds;
+	DFBResult err;
+	IDirectFB* dfb;
+	DFBEvent event;
+	DFBRectangle update_rect;
+	DFBSurfaceDescription dsc;
+	IDirectFBSurface* primary;
+	IDirectFBSurface* surface;
+	IDirectFBDisplayLayer* layer;
+	IDirectFBEventBuffer* event_buffer;
+};
+typedef struct df_info dfInfo;
 
-	settings = instance->settings;
-
-	freerdp_parse_args(settings, argc, argv, NULL, NULL, NULL, NULL);
-
-	gdi_init(instance, 0);
-
-	instance->Connect(instance);
-
-	freerdp_free(instance);
-
-	return 0;
-}
+#endif /* __DFREERDP_H */

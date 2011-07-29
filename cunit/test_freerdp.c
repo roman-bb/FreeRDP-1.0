@@ -125,12 +125,6 @@ int main(int argc, char* argv[])
 		add_list_suite();
 		add_license_suite();
 		add_stream_suite();
-		add_utils_suite();
-		add_transport_suite();
-		add_chanman_suite();
-		add_cliprdr_suite();
-		add_drdynvc_suite();
-		add_rail_suite();
 	}
 	else
 	{

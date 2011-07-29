@@ -1,6 +1,6 @@
 /**
  * FreeRDP: A Remote Desktop Protocol Client
- * Update Data PDUs
+ * Input PDUs
  *
  * Copyright 2011 Marc-Andre Moreau <marcandre.moreau@gmail.com>
  *
@@ -17,29 +17,25 @@
  * limitations under the License.
  */
 
-#ifndef __UPDATE_H
-#define __UPDATE_H
+#ifndef __INPUT_H
+#define __INPUT_H
 
 #include "rdp.h"
-#include "orders.h"
-#include <freerdp/types.h>
-#include <freerdp/update.h>
+
+#include <freerdp/input.h>
 #include <freerdp/freerdp.h>
 #include <freerdp/utils/stream.h>
+#include <freerdp/utils/memory.h>
 
-#define UPDATE_TYPE_ORDERS		0x0000
-#define UPDATE_TYPE_BITMAP		0x0001
-#define UPDATE_TYPE_PALETTE		0x0002
-#define UPDATE_TYPE_SYNCHRONIZE		0x0003
+#define RDP_CLIENT_INPUT_PDU_HEADER_LENGTH	4
 
-#define BITMAP_COMPRESSION		0x0001
-#define NO_BITMAP_COMPRESSION_HDR	0x0400
+void input_send_synchronize_event(rdpInput* input, uint32 flags);
+void input_send_keyboard_event(rdpInput* input, uint16 flags, uint16 code);
+void input_send_unicode_keyboard_event(rdpInput* input, uint16 code);
+void input_send_mouse_event(rdpInput* input, uint16 flags, uint16 x, uint16 y);
+void input_send_extended_mouse_event(rdpInput* input, uint16 flags, uint16 x, uint16 y);
 
-rdpUpdate* update_new(rdpRdp* rdp);
-void update_free(rdpUpdate* update);
+rdpInput* input_new(rdpRdp* rdp);
+void input_free(rdpInput* input);
 
-void update_read_bitmap(rdpUpdate* update, STREAM* s, BITMAP_UPDATE* bitmap_update);
-void update_read_palette(rdpUpdate* update, STREAM* s, PALETTE_UPDATE* palette_update);
-void update_recv(rdpUpdate* update, STREAM* s);
-
-#endif /* __UPDATE_H */
+#endif /* __INPUT_H */

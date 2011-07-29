@@ -19,3 +19,9 @@
 
 # User Interfaces
 add_subdirectory(test)
+
+# Build DirectFB Client
+find_package(DirectFB)
+if(DIRECTFB_FOUND)
+	add_subdirectory(DirectFB)
+endif()

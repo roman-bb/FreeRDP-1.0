@@ -1,5 +1,5 @@
 # FreeRDP: A Remote Desktop Protocol Client
-# FreeRDP Test UI cmake build script
+# FreeRDP DirectFB Client
 #
 # Copyright 2011 O.S. Systems Software Ltda.
 # Copyright 2011 Otavio Salvador <otavio@ossystems.com.br>
@@ -19,10 +19,15 @@
 
 include_directories(../../libfreerdp-gdi)
 include_directories(../../libfreerdp-core)
+include_directories(${DIRECTFB_INCLUDE_DIRS})
 
-add_executable(freerdp-test
-	freerdp.c)
+add_executable(dfreerdp
+	df_event.c
+	df_event.h
+	dfreerdp.c
+	dfreerdp.h)
 
-target_link_libraries(freerdp-test freerdp-core)
-target_link_libraries(freerdp-test freerdp-gdi)
-target_link_libraries(freerdp-test freerdp-utils)
+target_link_libraries(dfreerdp freerdp-core)
+target_link_libraries(dfreerdp freerdp-gdi)
+target_link_libraries(dfreerdp freerdp-utils)
+target_link_libraries(dfreerdp ${DIRECTFB_LIBRARIES})
