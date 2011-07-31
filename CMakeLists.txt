@@ -17,7 +17,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.6)
 project(FreeRDP C)
 set(CMAKE_COLOR_MAKEFILE ON)
 
@@ -77,6 +77,7 @@ endif()
 find_package(CUnit)
 if(CUNIT_FOUND)
    add_subdirectory(cunit)
+   enable_testing()
 endif()
 
 # Sub-directories

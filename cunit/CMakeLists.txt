@@ -18,6 +18,7 @@
 # limitations under the License.
 
 include_directories(${CUNIT_INCLUDE_DIRS})
+include_directories(${CMAKE_SOURCE_DIR}) # for some internal tests
 
 include_directories(../libfreerdp-core)
 include_directories(../libfreerdp-gdi)
@@ -67,3 +68,4 @@ target_link_libraries(test_freerdp freerdp-utils)
 target_link_libraries(test_freerdp freerdp-chanman)
 target_link_libraries(test_freerdp rail)
 
+add_test(CUnitTests ${EXECUTABLE_OUTPUT_PATH}/test_freerdp)

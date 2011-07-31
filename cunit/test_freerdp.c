@@ -66,7 +66,6 @@ void dump_data(unsigned char * p, int len, int width, char* name)
 void assert_stream(STREAM* s, uint8* data, int length, const char* func, int line)
 {
 	int i;
-	char* str;
 	int actual_length;
 	uint8* actual_data;
 
@@ -109,6 +108,7 @@ int main(int argc, char* argv[])
 {
 	int index = 1;
 	int *pindex = &index;
+	int ret = 0;
 
 	if (CU_initialize_registry() != CUE_SUCCESS)
 		return CU_get_error();
@@ -125,12 +125,6 @@ int main(int argc, char* argv[])
 		add_list_suite();
 		add_license_suite();
 		add_stream_suite();
-		add_utils_suite();
-		add_transport_suite();
-		add_chanman_suite();
-		add_cliprdr_suite();
-		add_drdynvc_suite();
-		add_rail_suite();
 	}
 	else
 	{
@@ -207,8 +201,9 @@ int main(int argc, char* argv[])
 
 	CU_basic_set_mode(CU_BRM_VERBOSE);
 	CU_basic_run_tests();
+	ret = CU_get_number_of_failure_records();
 	CU_cleanup_registry();
 
-	return CU_get_error();
+	return ret;
 }
 

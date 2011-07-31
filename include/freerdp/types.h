@@ -135,6 +135,12 @@ typedef struct _FRDP_RAIL_RECT
 }
 FRDP_RAIL_RECT;
 
+typedef struct _FRDP_RAIL_UNICODE_STRING
+{
+	uint16  length;
+	uint8	*buffer;
+}
+FRDP_RAIL_UNICODE_STRING;
 
 typedef struct _FRDP_EVENT FRDP_EVENT;
 

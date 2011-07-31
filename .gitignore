@@ -4,6 +4,7 @@ CMakeFiles/
 CMakeCache.txt
 config.h
 install_manifest.txt
+CTestTestfile.cmake
 
 # Make
 Makefile
@@ -25,3 +26,4 @@ docs/api
 *.dylib
 cunit/test_freerdp
 client/test/freerdp-test
+client/DirectFB/dfreerdp

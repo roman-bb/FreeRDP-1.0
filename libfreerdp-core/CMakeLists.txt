@@ -20,6 +20,10 @@
 add_definitions(-DEXT_PATH="/usr/lib/freerdp/extensions")
 
 set(LIBFREERDP_CORE_SRCS
+	activation.c
+	activation.h
+	bitmap.c
+	bitmap.h
 	ber.c
 	ber.h
 	gcc.c
@@ -30,6 +34,8 @@ set(LIBFREERDP_CORE_SRCS
 	nego.h
 	info.c
 	info.h
+	input.c
+	input.h
 	crypto.c
 	crypto.h
 	credssp.c
@@ -43,6 +49,11 @@ set(LIBFREERDP_CORE_SRCS
 	security.c
 	security.h
 	settings.c
+	orders.c
+	orders.h
+	orders_rail.c
+	orders_rail.h
+	freerdp.c
 	capabilities.c
 	capabilities.h
 	certificate.c
@@ -65,7 +76,8 @@ set(LIBFREERDP_CORE_SRCS
 	tpkt.h
 	transport.c
 	transport.h
-	bitmap.c
+	update.c
+	update.h
 )
 
 add_library(freerdp-core SHARED ${LIBFREERDP_CORE_SRCS})

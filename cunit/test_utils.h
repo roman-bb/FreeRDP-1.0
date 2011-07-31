@@ -19,11 +19,12 @@
 
 #include "test_freerdp.h"
 
-int init_list_suite(void);
-int clean_list_suite(void);
-int add_list_suite(void);
+int init_utils_suite(void);
+int clean_utils_suite(void);
+int add_utils_suite(void);
 
 void test_mutex(void);
 void test_semaphore(void);
 void test_load_plugin(void);
 void test_wait_obj(void);
+void test_args(void);

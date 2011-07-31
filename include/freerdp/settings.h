@@ -69,10 +69,10 @@ typedef struct
 typedef struct
 {
 	uint32 bias;
-	uint8 standardName[32];
+	char standardName[32];
 	SYSTEM_TIME standardDate;
 	uint32 standardBias;
-	uint8 daylightName[32];
+	char daylightName[32];
 	SYSTEM_TIME daylightDate;
 	uint32 daylightBias;
 } TIME_ZONE_INFORMATION;
@@ -85,6 +85,15 @@ typedef struct
 	uint32 logonId;
 	uint8 securityVerifier[16];
 } ARC_CS_PRIVATE_PACKET;
+
+/* ARC_SC_PRIVATE_PACKET */
+typedef struct
+{
+	uint32 cbLen;
+	uint32 version;
+	uint32 logonId;
+	uint8 arcRandomBits[16];
+} ARC_SC_PRIVATE_PACKET;
 
 struct rdp_chan
 {
@@ -144,22 +153,25 @@ struct rdp_settings
 	char client_product_id[32];
 
 	uint16 port;
-	uint8* hostname;
-	uint8* username;
-	uint8* password;
-	uint8* domain;
-	uint8* shell;
-	uint8* directory;
+	char* hostname;
+	char* username;
+	char* password;
+	char* domain;
+	char* shell;
+	char* directory;
 	uint32 performance_flags;
 
 	boolean autologon;
 	boolean compression;
 
 	boolean ipv6;
-	uint8* ip_address;
-	uint8* client_dir;
+	char* ip_address;
+	char* client_dir;
 	TIME_ZONE_INFORMATION client_time_zone;
-	ARC_CS_PRIVATE_PACKET auto_reconnect_cookie;
+
+	boolean auto_reconnection;
+	ARC_CS_PRIVATE_PACKET client_auto_reconnect_cookie;
+	ARC_SC_PRIVATE_PACKET server_auto_reconnect_cookie;
 
 	boolean encryption;
 	boolean tls_security;
@@ -176,18 +188,19 @@ struct rdp_settings
 	boolean frame_marker;
 	boolean bitmap_cache_v3;
 
+	uint8 received_caps[32];
 	uint8 order_support[32];
 
 	boolean color_pointer;
 	boolean sound_beeps;
 
 	boolean fast_path_input;
-	boolean auto_reconnection;
 
 	boolean offscreen_bitmap_cache;
 	uint16 offscreen_bitmap_cache_size;
 	uint16 offscreen_bitmap_cache_entries;
 
+	boolean bitmap_cache;
 	boolean persistent_bitmap_cache;
 
 	uint32 vc_chunk_size;
@@ -208,19 +221,18 @@ struct rdp_settings
 
 	boolean frame_acknowledge;
 
-	boolean remote_app;
+	boolean rail_mode_enabled;
+	uint8*  rail_exe_or_file;
+	uint8*  rail_arguments;
+	boolean rail_by_server_supported;
+	boolean rail_langbar_supported;
+	boolean rail_window_supported;
+	uint16  rail_icon_cache_entries_number;
+	uint8   rail_icon_cache_number;
 
-	char app_name[64];
-	int desktop_save;
-	int polygon_ellipse_orders;
-	int off_screen_bitmaps;
-	int triblt;
-	int new_cursors;
-	int mouse_motion;
 	int rfx_flags;
 	int ui_decode_flags;
-	int use_frame_ack;
-	int software_gdi;
+	boolean mouse_motion;
 };
 typedef struct rdp_settings rdpSettings;
 

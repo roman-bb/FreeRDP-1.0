@@ -19,24 +19,24 @@
 
 #include "registry.h"
 
-static uint8 registry_dir[] = "freerdp";
-static uint8 registry_file[] = "config.txt";
+static char registry_dir[] = "freerdp";
+static char registry_file[] = "config.txt";
 
 static REG_SECTION global[] =
 {
-	REG_TYPE_SECTION, "global",		0,  NULL,
-	REG_TYPE_BOOLEAN, "fast_path",		1,  "1",
-	REG_TYPE_STRING,  "resolution",		8,  "1024x768",
-	REG_TYPE_INTEGER, "performance_flags",	4,  "0xFFFF",
-	REG_TYPE_NONE,    "",			0,  NULL
+	{ REG_TYPE_SECTION, "global",			0,  NULL },
+	{ REG_TYPE_BOOLEAN, "fast_path",		1,  "1" },
+	{ REG_TYPE_STRING,  "resolution",		8,  "1024x768" },
+	{ REG_TYPE_INTEGER, "performance_flags",	4,  "0xFFFF" },
+	{ REG_TYPE_NONE,    "",				0,  NULL }
 };
 
 static REG_SECTION licensing[] =
 {
-	REG_TYPE_SECTION, "licensing",		0,  NULL,
-	REG_TYPE_STRING,  "platform_id",	1,  "0x000201",
-	REG_TYPE_STRING,  "hardware_id",	16, "0xe107d9d372bb6826bd81d3542a419d6",
-	REG_TYPE_NONE,    "",			0,  NULL
+	{ REG_TYPE_SECTION, "licensing",	0,  NULL },
+	{ REG_TYPE_STRING,  "platform_id",	1,  "0x000201" },
+	{ REG_TYPE_STRING,  "hardware_id",	16, "0xe107d9d372bb6826bd81d3542a419d6" },
+	{ REG_TYPE_NONE,    "",			0,  NULL }
 };
 
 static REG_SECTION* sections[] =
@@ -85,21 +85,27 @@ void registry_print(rdpRegistry* registry, FILE* fp)
 
 void registry_create(rdpRegistry* registry)
 {
-	registry->fp = fopen(registry->file, "w+");
+	registry->fp = fopen((char*)registry->file, "w+");
+
+	if (registry->fp == NULL)
+	{
+		printf("registry_create: error opening [%s] for writing\n", registry->file);
+		return;
+	}
 	registry_print(registry, registry->fp);
 	fflush(registry->fp);
 }
 
 void registry_load(rdpRegistry* registry)
 {
-	registry->fp = fopen(registry->file, "r+");
+	registry->fp = fopen((char*)registry->file, "r+");
 }
 
 void registry_open(rdpRegistry* registry)
 {
 	struct stat stat_info;
 
-	if (stat(registry->file, &stat_info) != 0)
+	if (stat((char*)registry->file, &stat_info) != 0)
 		registry_create(registry);
 	else
 		registry_load(registry);
@@ -127,12 +133,10 @@ void registry_init(rdpRegistry* registry)
 		return;
 	}
 
-	length = strlen(home_path);
-	registry->home = (uint8*) xmalloc(length);
-	memcpy(registry->home, home_path, length);
+	registry->home = (char*) xstrdup(home_path);
 	printf("home path: %s\n", registry->home);
 
-	registry->path = (uint8*) xmalloc(length + sizeof(registry_dir) + 2);
+	registry->path = (char*) xmalloc(strlen(registry->home) + strlen("/.") + strlen(registry_dir) + 1);
 	sprintf(registry->path, "%s/.%s", registry->home, registry_dir);
 	printf("registry path: %s\n", registry->path);
 
@@ -143,7 +147,7 @@ void registry_init(rdpRegistry* registry)
 	}
 
 	length = strlen(registry->path);
-	registry->file = (uint8*) xmalloc(length + sizeof(registry_file) + 1);
+	registry->file = (char*) xmalloc(strlen(registry->path) + strlen("/") + strlen(registry_file) + 1);
 	sprintf(registry->file, "%s/%s", registry->path, registry_file);
 	printf("registry file: %s\n", registry->file);
 

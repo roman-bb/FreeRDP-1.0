@@ -17,8 +17,13 @@
  * limitations under the License.
  */
 
+#include "config.h"
 #include "capabilities.h"
 #include <freerdp/utils/memory.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
 
 #include <freerdp/settings.h>
 
@@ -50,6 +55,8 @@ rdpSettings* settings_new()
 				PERF_DISABLE_FULLWINDOWDRAG |
 				PERF_DISABLE_MENUANIMATIONS |
 				PERF_DISABLE_WALLPAPER;
+
+		settings->auto_reconnection = True;
 
 		settings->encryption_method = ENCRYPTION_METHOD_NONE;
 		settings->encryption_level = ENCRYPTION_LEVEL_NONE;
@@ -84,17 +91,29 @@ rdpSettings* settings_new()
 		settings->frame_marker = False;
 		settings->bitmap_cache_v3 = False;
 
+		settings->bitmap_cache = True;
+		settings->persistent_bitmap_cache = False;
+
+		settings->offscreen_bitmap_cache = True;
 		settings->offscreen_bitmap_cache_size = 7680;
 		settings->offscreen_bitmap_cache_entries = 100;
 
 		settings->draw_nine_grid_cache_size = 2560;
 		settings->draw_nine_grid_cache_entries = 256;
 
-		settings->client_dir = xmalloc(strlen(client_dll));
-		strcpy(settings->client_dir, client_dll);
+		settings->client_dir = xstrdup(client_dll);
 
 		settings->uniconv = freerdp_uniconv_new();
 		gethostname(settings->client_hostname, sizeof(settings->client_hostname) - 1);
+
+		settings->rail_mode_enabled = False;
+		settings->rail_exe_or_file = "";
+		settings->rail_arguments = "";
+		settings->rail_window_supported = False;
+		settings->rail_by_server_supported = False;
+		settings->rail_icon_cache_number = 0;
+		settings->rail_icon_cache_entries_number = 0;
+		settings->rail_langbar_supported = False;
 	}
 
 	return settings;
@@ -105,6 +124,13 @@ void settings_free(rdpSettings* settings)
 	if (settings != NULL)
 	{
 		freerdp_uniconv_free(settings->uniconv);
+		xfree(settings->hostname);
+		xfree(settings->username);
+		xfree(settings->password);
+		xfree(settings->domain);
+		xfree(settings->shell);
+		xfree(settings->directory);
+		xfree(settings->client_dir);
 		xfree(settings);
 	}
 }
