@@ -14,6 +14,7 @@
 #cmakedefine BIG_ENDIAN
 
 /* Options */
+#cmakedefine WITH_DEBUG_RAIL
 #cmakedefine WITH_DEBUG_TRANSPORT
 #cmakedefine WITH_DEBUG_CHANMAN
 #cmakedefine WITH_DEBUG_SVC

@@ -18,7 +18,8 @@
 # limitations under the License.
 
 set(RAIL_SRCS
-	rail_main.c	
+	rail_main.c
+	rail_main.h	
 	rail_core.c
 	rail_core.h
 	rail_channel_orders.c

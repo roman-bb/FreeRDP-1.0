@@ -30,23 +30,32 @@
 #include "rail_core.h"
 #include "rail_channel_orders.h"
 
-#define LOG_LEVEL 11
-#define LLOG(_level, _args) \
-  do { if (_level < LOG_LEVEL) { printf _args ; } } while (0)
-#define LLOGLN(_level, _args) \
-  do { if (_level < LOG_LEVEL) { printf _args ; printf("\n"); } } while (0)
+/*
+// Initialization stage in UI for RAIL:
+// 1) create a sequence of rail_notify_client_sysparam_update()
+//    calls with all current client system parameters
+//
+// 2) if Language Bar capability enabled - call updating Language Bar PDU
+//
+// 3) prepare and call rail_client_execute(exe_or_file, working_dir, args)
+//
+*/
 
 //------------------------------------------------------------------------------
+
 /*
 Flow of init stage over channel;
 
-   Client notify UI about session start and go to RAIL_ESTABLISHING state.
+   Client notify UI about session start
+   and go to RAIL_ESTABLISHING state.
 
-   Client send Handshake request
-   Server send Handshake response
-   Client check Handshake response. If NOT OK - exit with specified reason
-
-   Server send Server System Parameters Update
+   Client wait for Server Handshake PDU
+   	   	   	   	   	   	   	   	   	   	   	   	   Server send Handshake request
+   Client check Handshake response.
+   If NOT OK - exit with specified reason
+   Client send Handshake response
+   	   	   	   	   	   	   	   	   	   	   	   	   Server send Server System
+   	   	   	   	   	   	   	   	   	   	   	   	   Parameters Update (in paralel)
    Client send Client Information
    Client send Client System Parameters Update
    Client send Client Execute
@@ -57,122 +66,8 @@ Flow of init stage over channel;
    RAIL_ESTABLISHED state.
 */
 
-///////////////////////////////////////////////////////////////////////////////
-void mock_ui_on_rail_handshake_request_sent(void * ui)
-{
-	RAIL_SESSION * session = (RAIL_SESSION *)ui;
-	LLOGLN(10, ("mock_ui_on_rail_handshake_request_sent: session=0x%p",
-			session));
-}
 //------------------------------------------------------------------------------
-void mock_ui_on_rail_handshake_response_receved(void * ui)
-{
-	RAIL_SESSION * session = (RAIL_SESSION *)ui;
-	LLOGLN(10, ("mock_ui_on_rail_handshake_response_receved: session=0x%p",
-			session));
-}
-//------------------------------------------------------------------------------
-void mock_ui_on_initial_client_sysparams_update(void * ui)
-{
-
-	RAIL_CLIENT_SYSPARAM sysparams[10];
-	size_t i = 0;
-
-	RAIL_SESSION * session = (RAIL_SESSION *)ui;
-	LLOGLN(10, ("mock_ui_on_rail_handshake_response_receved: session=0x%p",
-			session));
-
-	sysparams[0].type = SPI_SETHIGHCONTRAST;
-	sysparams[0].value.high_contrast_system_info.color_scheme.length = 0;
-	sysparams[0].value.high_contrast_system_info.color_scheme.buffer = NULL;
-	sysparams[0].value.high_contrast_system_info.flags = 0x7e;
-
-	sysparams[1].type = RAIL_SPI_TASKBARPOS;
-	sysparams[1].value.work_area.left = 0;
-	sysparams[1].value.work_area.top = 0;
-	sysparams[1].value.work_area.right = 1024;
-	sysparams[1].value.work_area.bottom = 29;
-
-	sysparams[2].type = SPI_SETMOUSEBUTTONSWAP;
-	sysparams[2].value.left_right_mouse_buttons_swapped = 0;
-
-	sysparams[3].type = SPI_SETKEYBOARDPREF;
-	sysparams[3].value.keyboard_for_user_prefered = 0;
-
-	sysparams[4].type = SPI_SETDRAGFULLWINDOWS;
-	sysparams[4].value.full_window_drag_enabled = 1;
-
-	sysparams[5].type = SPI_SETKEYBOARDCUES;
-	sysparams[5].value.menu_access_key_always_underlined = 0;
-
-	sysparams[6].type = SPI_SETWORKAREA;
-	sysparams[6].value.work_area.left = 0;
-	sysparams[6].value.work_area.top = 0;
-	sysparams[6].value.work_area.right = 1024;
-	sysparams[6].value.work_area.bottom = 768;
-
-
-//	sysparams[5].type = RAIL_SPI_DISPLAYCHANGE;
-//	sysparams[5].value.display_resolution.top = 0;
-//	sysparams[5].value.display_resolution.bottom = 768;
-//	sysparams[5].value.display_resolution.left = 0;
-//	sysparams[5].value.display_resolution.right = 1024;
-
-	for (i = 0; i < 7; i++)
-	{
-		rail_on_ui_client_system_param_updated(session, &sysparams[i]);
-	}
-}
-//------------------------------------------------------------------------------
-void mock_ui_on_rail_exec_result_receved(
-	void * ui,
-	uint16 exec_result,
-	uint32 raw_result
-	)
-{
-	RAIL_SESSION * session = (RAIL_SESSION *)ui;
-	LLOGLN(10, ("mock_ui_on_rail_exec_result_receved:"
-			" session=0x%p"
-			" exec_result=0x%X"
-			" raw_result=0x%X",
-			session, exec_result, raw_result));
-
-}
-//------------------------------------------------------------------------------
-void mock_ui_on_rail_server_sysparam_received(
-	void * ui,
-	RAIL_SERVER_SYSPARAM * sysparam
-	)
-{
-	RAIL_SESSION * session = (RAIL_SESSION *)ui;
-	LLOGLN(10, ("mock_ui_on_rail_server_sysparam_received: session=0x%p "
-			"param_type=%d src_enabled=%d scr_lock_enabled=%d",
-			session, sysparam->type, sysparam->value.screen_saver_enabled,
-			sysparam->value.screen_saver_lock_enabled));
-
-}
-//------------------------------------------------------------------------------
-void register_mock_ui_for_session(RAIL_SESSION* session)
-{
-	RAIL_UI_LISTENER s_ui = {0};
-	RAIL_UI_LISTENER *ui = &s_ui;
-
-	ui->ui_listener_object = session;
-
-	ui->ui_on_rail_handshake_request_sent = mock_ui_on_rail_handshake_request_sent;
-	ui->ui_on_rail_handshake_response_receved = mock_ui_on_rail_handshake_response_receved;
-	ui->ui_on_initial_client_sysparams_update = mock_ui_on_initial_client_sysparams_update;
-	ui->ui_on_rail_exec_result_receved = mock_ui_on_rail_exec_result_receved;
-	ui->ui_on_rail_server_sysparam_received = mock_ui_on_rail_server_sysparam_received;
-
-
-}
-//////////////////////////////////////////////////////////////////////////////
-
-
-
-//------------------------------------------------------------------------------
-void init_rail_string(RAIL_STRING * rail_string, char * string)
+void init_rail_string(RAIL_STRING * rail_string, const char * string)
 {
 	rail_string->buffer = (uint8*)string;
 	rail_string->length = strlen(string) + 1;
@@ -210,9 +105,9 @@ void rail_unicode_string2string(
 }
 //------------------------------------------------------------------------------
 RAIL_SESSION *
-rail_session_new(
-	RAIL_VCHANNEL_SENDER *channel_sender,
-	RAIL_UI_LISTENER *ui_listener
+rail_core_session_new(
+	RAIL_VCHANNEL_DATA_SENDER *data_sender,
+	RAIL_VCHANNEL_EVENT_SENDER *event_sender
 	)
 {
 	RAIL_SESSION * self;
@@ -221,43 +116,37 @@ rail_session_new(
 	if (self != NULL)
 	{
 		memset(self, 0, sizeof(RAIL_SESSION));
+		self->data_sender = data_sender;
+		self->event_sender = event_sender;
 		self->uniconv = freerdp_uniconv_new();
-		self->channel_sender = channel_sender;
-		self->ui_listener = ui_listener;
-		self->number_icon_caches = 2;
-		self->number_icon_cache_entries = 10;
 	}
 	return self;
 }
 //------------------------------------------------------------------------------
 void
-rail_session_free(RAIL_SESSION * rail_session)
+rail_core_session_free(RAIL_SESSION * rail_session)
 {
 	if (rail_session != NULL)
 	{
+		freerdp_uniconv_free(rail_session->uniconv);
 		xfree(rail_session);
 	}
 }
 //------------------------------------------------------------------------------
 void
-rail_on_channel_connected(RAIL_SESSION* session)
+rail_core_on_channel_connected(RAIL_SESSION* session)
 {
-	LLOGLN(10, ("rail_on_channel_connected() called."));
-	uint32 build_number = 0x00001db0; // from MS doc protocol examples
-
-	register_mock_ui_for_session(session);
-
-	rail_send_vchannel_handshake_order(session, build_number);
+	DEBUG_RAIL("rail_on_channel_connected() called.");
 }
 //------------------------------------------------------------------------------
 void
-rail_on_channel_terminated(RAIL_SESSION* session)
+rail_core_on_channel_terminated(RAIL_SESSION* session)
 {
-	LLOGLN(10, ("rail_on_channel_terminated() called."));
+	DEBUG_RAIL("rail_on_channel_terminated() called.");
 }
 //------------------------------------------------------------------------------
 void
-rail_on_ui_client_system_param_updated(
+rail_core_handle_ui_update_client_system_param(
 		RAIL_SESSION* session,
 		RAIL_CLIENT_SYSPARAM * sysparam
 		)
@@ -265,8 +154,13 @@ rail_on_ui_client_system_param_updated(
 	rail_send_vchannel_client_sysparam_update_order(session, sysparam);
 }
 //------------------------------------------------------------------------------
-void rail_send_client_execute(
-	RAIL_SESSION* session
+void
+rail_core_ui_handle_client_execute(
+	RAIL_SESSION* session,
+	boolean exec_or_file_is_file_path,
+	const char* rail_exe_or_file,
+	const char* rail_working_directory,
+	const char* rail_arguments
 	)
 {
 	RAIL_STRING exe_or_file_;
@@ -277,51 +171,72 @@ void rail_send_client_execute(
 	RAIL_UNICODE_STRING arguments;
 	uint16 flags;
 
-	init_rail_string(&exe_or_file_, session->rail_exe_or_file);
-	init_rail_string(&working_directory_, session->rail_working_directory);
-	init_rail_string(&arguments_, session->rail_arguments);
+	init_rail_string(&exe_or_file_, rail_exe_or_file);
+	init_rail_string(&working_directory_, rail_working_directory);
+	init_rail_string(&arguments_, rail_arguments);
 
 	rail_string2unicode_string(session, &exe_or_file_, &exe_or_file);
 	rail_string2unicode_string(session, &working_directory_, &working_directory);
 	rail_string2unicode_string(session, &arguments_, &arguments);
 
-	flags = RAIL_EXEC_FLAG_EXPAND_WORKINGDIRECTORY | RAIL_EXEC_FLAG_EXPAND_ARGUMENTS;
+	flags = (RAIL_EXEC_FLAG_EXPAND_WORKINGDIRECTORY |
+			RAIL_EXEC_FLAG_EXPAND_ARGUMENTS);
+
+	if (exec_or_file_is_file_path)
+	{
+		flags |= (RAIL_EXEC_FLAG_TRANSLATE_FILES | RAIL_EXEC_FLAG_FILE);
+	}
 
 	rail_send_vchannel_exec_order(session, flags, &exe_or_file,
-			&working_directory,	&arguments);
+		&working_directory,	&arguments);
 
 	free_rail_unicode_string(&exe_or_file);
 	free_rail_unicode_string(&working_directory);
 	free_rail_unicode_string(&arguments);
 }
 //------------------------------------------------------------------------------
+static void
+notify_ui_to_start_initialization_stage(
+	RAIL_SESSION* session
+	)
+{
+	// TODO: Send event to UI from vchannel about start UI initialization stage.
+}
+//------------------------------------------------------------------------------
 void
-rail_handle_server_hadshake(
+rail_core_handle_server_hadshake(
 	RAIL_SESSION* session,
 	uint32 build_number
 	)
 {
-	LLOGLN(10, ("rail_handle_server_hadshake: buildNumber=0x%X.", build_number));
+	uint32 client_build_number = 0x00001db0;
 
-	// Step 1. Send Client Information Order
+	DEBUG_RAIL("rail_handle_server_hadshake: buildNumber=0x%X.", build_number);
+
+	// Step 1. Send Handshake PDU (2.2.2.2.1)
+	// Fixed: MS-RDPERP 1.3.2.1 is not correct!
+	rail_send_vchannel_handshake_order(session, client_build_number);
+
+	// Step 2. Send Client Information PDU (2.2.2.2.1)
 	rail_send_vchannel_client_information_order(session,
-		RAIL_CLIENTSTATUS_ALLOWLOCALMOVESIZE
-		);
+		RAIL_CLIENTSTATUS_ALLOWLOCALMOVESIZE);
 
-	// Step 2. Send Client System Parameters Update with all initial parameters
-	session->ui_listener->ui_on_initial_client_sysparams_update(
-		session->ui_listener->ui_listener_object);
+	// Step 3. Notify UI about requirements to
+	//         start UI initialization stage.
 
-	// Step 3. Send Client Execute
+	//	session->ui_listener.ui_on_initial_client_sysparams_update(
+	//		session->ui_listener.ui_listener_object);
+
+	// Step 4. Send Client Execute
 	// FIXME:
 	// According to "3.1.1.1 Server State Machine" Client Execute
 	// will be processed after Destop Sync processed.
 	// So maybe send after receive Destop Sync sequence?
-	rail_send_client_execute(session);
+	//rail_send_client_execute(session);
 }
 //------------------------------------------------------------------------------
 void
-rail_handle_exec_result(
+rail_core_handle_exec_result(
 	RAIL_SESSION* session,
 	uint16 flags,
 	uint16 exec_result,
@@ -329,31 +244,28 @@ rail_handle_exec_result(
 	RAIL_UNICODE_STRING * exe_or_file
 	)
 {
-	LLOGLN(10, ("rail_handle_exec_result: flags=0x%X exec_result=0x%X"
-			" raw_result=0x%X",	flags, exec_result, raw_result));
+	DEBUG_RAIL("rail_handle_exec_result: flags=0x%X exec_result=0x%X"
+			" raw_result=0x%X",	flags, exec_result, raw_result);
 
-	session->ui_listener->ui_on_rail_exec_result_receved(
-			session->ui_listener->ui_listener_object, exec_result, raw_result);
-
+	// TODO: Send event to UI from vchannel about exec result
 }
 //------------------------------------------------------------------------------
 void
-rail_handle_server_sysparam(
+rail_core_handle_server_sysparam(
 	RAIL_SESSION* session,
 	RAIL_SERVER_SYSPARAM * sysparam
 	)
 {
-	LLOGLN(10, ("rail_handle_server_sysparam: type=0x%X scr_enabled=%d"
+	DEBUG_RAIL("rail_handle_server_sysparam: type=0x%X scr_enabled=%d"
 			" scr_lock_enabled=%d",	sysparam->type,
 			sysparam->value.screen_saver_enabled,
-			sysparam->value.screen_saver_lock_enabled));
+			sysparam->value.screen_saver_lock_enabled);
 
-	session->ui_listener->ui_on_rail_server_sysparam_received(
-			session->ui_listener->ui_listener_object, sysparam);
+	// TODO: Send event to UI from vchannel about server param update
 }
 //------------------------------------------------------------------------------
 void
-rail_handle_server_movesize(
+rail_core_handle_server_movesize(
 	RAIL_SESSION* session,
 	uint32 window_id,
 	uint16 move_size_started,
@@ -362,10 +274,11 @@ rail_handle_server_movesize(
 	uint16 pos_y
     )
 {
+	// TODO: Send event to UI from vchannel about server movesize
 }
 //------------------------------------------------------------------------------
 void
-rail_handle_server_minmax_info(
+rail_core_handle_server_minmax_info(
 	RAIL_SESSION* session,
 	uint32 window_id,
 	uint16 max_width, uint16 max_height,
@@ -374,22 +287,26 @@ rail_handle_server_minmax_info(
 	uint16 max_track_width,	uint16 max_track_height
     )
 {
+	// TODO: Send event to UI from vchannel about server minmax
 }
 //------------------------------------------------------------------------------
 void
-rail_handle_server_langbar_info(
+rail_core_handle_server_langbar_info(
 		RAIL_SESSION* session,
 		uint32 langbar_status
 		)
 {
+	// TODO: Send event to UI from vchannel about server langbar info
 }
 //------------------------------------------------------------------------------
 void
-rail_handle_server_get_app_resp(
+rail_core_handle_server_get_app_resp(
 		RAIL_SESSION* session,
 		uint32 window_id,
 		RAIL_UNICODE_STRING * app_id
 		)
 {
+	// TODO: Send event to UI from vchannel about server get app response
 }
 //------------------------------------------------------------------------------
+
