@@ -28,11 +28,12 @@
 #include <freerdp/rail.h>
 
 
-#define LOG_LEVEL 11
-#define LLOG(_level, _args) \
-  do { if (_level < LOG_LEVEL) { printf _args ; } } while (0)
-#define LLOGLN(_level, _args) \
-  do { if (_level < LOG_LEVEL) { printf _args ; printf("\n"); } } while (0)
+
+//#define LOG_LEVEL 11
+//#define LLOG(_level, _args) \
+//  do { if (_level < LOG_LEVEL) { printf _args ; } } while (0)
+//#define LLOGLN(_level, _args) \
+//  do { if (_level < LOG_LEVEL) { printf _args ; printf("\n"); } } while (0)
 
 
 typedef struct _RAIL_CACHED_ICON_INFO
@@ -60,7 +61,7 @@ typedef struct _RAIL_ICON_INFO
 
 typedef struct _RAIL_WINDOW_INFO
 {
-	FRDP_RAIL_UNICODE_STRING title_info;
+	RAIL_UNICODE_STRING title_info;
 
 	uint32	owner_window_id;
 	uint32	style;
@@ -84,13 +85,13 @@ typedef struct _RAIL_WINDOW_INFO
 	uint32	window_height;
 
 	uint32			window_rects_number;
-	FRDP_RAIL_RECT* 	window_rects;
+	RAIL_RECT_16* 	window_rects;
 
 	uint32	visible_offset_x;
 	uint32	visible_offset_y;
 
 	uint32			visibility_rects_number;
-	FRDP_RAIL_RECT* 	visibility_rects;
+	RAIL_RECT_16* 	visibility_rects;
 
 } RAIL_WINDOW_INFO;
 
@@ -99,8 +100,8 @@ typedef struct _RAIL_NOTIFY_ICON_INFOTIP
 	uint32 timeout;
 	uint32 info_flags;
 
-	FRDP_RAIL_UNICODE_STRING info_tip_text;
-	FRDP_RAIL_UNICODE_STRING title;
+	RAIL_UNICODE_STRING info_tip_text;
+	RAIL_UNICODE_STRING title;
 
 } RAIL_NOTIFY_ICON_INFOTIP;
 
@@ -109,7 +110,7 @@ typedef struct _RAIL_NOTIFY_ICON_INFO
 	uint32 version;
 	uint32 state;
 
-	FRDP_RAIL_UNICODE_STRING	tool_tip;
+	RAIL_UNICODE_STRING	tool_tip;
 	RAIL_NOTIFY_ICON_INFOTIP 	info_tip;
 	RAIL_ICON_INFO 				icon;
 	RAIL_CACHED_ICON_INFO   	cached_icon;
@@ -117,7 +118,7 @@ typedef struct _RAIL_NOTIFY_ICON_INFO
 } RAIL_NOTIFY_ICON_INFO;
 
 //------------------------------------------------------------------------------
-void read_rail_unicode_string(STREAM* s, FRDP_RAIL_UNICODE_STRING * string)
+void read_rail_unicode_string(STREAM* s, RAIL_UNICODE_STRING * string)
 {
 	stream_read_uint16(s, string->length);
 
@@ -130,7 +131,7 @@ void read_rail_unicode_string(STREAM* s, FRDP_RAIL_UNICODE_STRING * string)
 }
 //------------------------------------------------------------------------------
 void
-free_rail_unicode_string(FRDP_RAIL_UNICODE_STRING * string)
+free_rail_unicode_string(RAIL_UNICODE_STRING * string)
 {
 	if (string->buffer != NULL)
 	{

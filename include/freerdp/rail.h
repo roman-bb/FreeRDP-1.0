@@ -21,6 +21,16 @@
 #ifndef __RAIL_H
 #define __RAIL_H
 
+#include <freerdp/utils/debug.h>
+
+#ifdef WITH_DEBUG_RAIL
+//#pragma message "Compiling DEBUG_RAIL enabled."
+#define DEBUG_RAIL(fmt, ...) DEBUG_CLASS(RAIL, fmt, ## __VA_ARGS__)
+#else
+#define DEBUG_RAIL(fmt, ...) DEBUG_NULL(fmt, ## __VA_ARGS__)
+#endif
+
+
 /* RAIL Constants*/
 
 enum RDP_RAIL_PDU_TYPE
@@ -191,7 +201,35 @@ enum RDP_RAIL_PDU_TYPE
 #define WINDOW_ORDER_FIELD_DESKTOP_ZORDER		0x00000010
 #define WINDOW_ORDER_FIELD_DESKTOP_ACTIVEWND		0x00000020
 
+/* RAIL Common structures */
 
+typedef struct _RAIL_RECT_16
+{
+	uint16 left;
+	uint16 top;
+	uint16 right;
+	uint16 bottom;
+}
+RAIL_RECT_16;
+
+typedef struct _RAIL_UNICODE_STRING
+{
+	uint16  length;
+	uint8	*buffer;
+}
+RAIL_UNICODE_STRING;
+
+// Events from 'rail' vchannel plugin to UI
+typedef struct _RAIL_VCHANNEL_EVENT
+{
+}
+RAIL_VCHANNEL_EVENT;
+
+// Events from UI to 'rail' vchannel plugin
+typedef struct _RAIL_UI_EVENT
+{
+}
+RAIL_UI_EVENT;
 
 
 #endif /* __RAIL_H */

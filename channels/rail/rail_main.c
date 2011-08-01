@@ -26,23 +26,45 @@
 #include <freerdp/types.h>
 #include <freerdp/utils/memory.h>
 #include <freerdp/utils/svc_plugin.h>
+#include <freerdp/rail.h>
 
 #include "rail_core.h"
+#include "rail_main.h"
+
 
 typedef struct rail_plugin railPlugin;
 struct rail_plugin
 {
 	rdpSvcPlugin plugin;
 
+	RAIL_VCHANNEL_DATA_SENDER rail_data_sender;
+	RAIL_VCHANNEL_EVENT_SENDER rail_event_sender;
+
 	RAIL_SESSION * session;
 };
-
+//------------------------------------------------------------------------------
 static void rail_plugin_process_connect(rdpSvcPlugin* plugin)
 {
-	printf("rail_plugin_process_connect\n");
-}
+	railPlugin* rail_plugin = (railPlugin*)plugin;
 
+	DEBUG_RAIL("rail_plugin_process_connect() called.");
+	rail_core_on_channel_connected(rail_plugin->session);
+}
+//------------------------------------------------------------------------------
 static void 
+rail_plugin_send_vchannel_event(
+	void* rail_plugin_object
+	)
+{
+	// TODO: Create event exchange interface with UI.
+	FRDP_EVENT* event;
+	railPlugin* plugin = (railPlugin*)rail_plugin_object;
+
+	event = freerdp_event_new(FRDP_EVENT_TYPE_DEBUG, NULL, NULL);
+	svc_plugin_send_event((rdpSvcPlugin*)plugin, event);
+}
+//------------------------------------------------------------------------------
+static void
 rail_plugin_send_vchannel_data(
 	void* rail_plugin_object,
 	void* data,
@@ -56,34 +78,34 @@ rail_plugin_send_vchannel_data(
 	stream_write(s, data, length);
 	svc_plugin_send((rdpSvcPlugin*)plugin, s);
 }
-
+//------------------------------------------------------------------------------
 static void rail_plugin_process_receive(rdpSvcPlugin* plugin, STREAM* data_in)
 {
 	STREAM* data_out;
 
-	printf("rail_plugin_process_receive: size %d\n", stream_get_size(data_in));
+	DEBUG_RAIL("rail_plugin_process_receive: size %d", stream_get_size(data_in));
 	stream_free(data_in);
 
 	data_out = stream_new(8);
 	stream_write(data_out, "senddata", 8);
 	svc_plugin_send(plugin, data_out);
 }
-
+//------------------------------------------------------------------------------
 static void rail_plugin_process_event(rdpSvcPlugin* plugin, FRDP_EVENT* event)
 {
-	printf("rail_plugin_process_event: event_type %d\n", event->event_type);
+	DEBUG_RAIL("rail_plugin_process_event: event_type %d\n", event->event_type);
 	freerdp_event_free(event);
 
 	event = freerdp_event_new(FRDP_EVENT_TYPE_DEBUG, NULL, NULL);
 	svc_plugin_send_event(plugin, event);
 }
-
+//------------------------------------------------------------------------------
 static void rail_plugin_process_terminate(rdpSvcPlugin* plugin)
 {
-	printf("rail_plugin_process_terminate\n");
+	DEBUG_RAIL("rail_plugin_process_terminate\n");
 	xfree(plugin);
 }
-
+//------------------------------------------------------------------------------
 int VirtualChannelEntry(PCHANNEL_ENTRY_POINTS pEntryPoints)
 {
 	railPlugin* rail;
@@ -100,6 +122,18 @@ int VirtualChannelEntry(PCHANNEL_ENTRY_POINTS pEntryPoints)
 	rail->plugin.receive_callback = rail_plugin_process_receive;
 	rail->plugin.event_callback = rail_plugin_process_event;
 	rail->plugin.terminate_callback = rail_plugin_process_terminate;
+
+	rail->rail_event_sender.event_sender_object = rail;
+	rail->rail_event_sender.send_rail_vchannel_event =
+			rail_plugin_send_vchannel_event;
+
+	rail->rail_data_sender.data_sender_object  = rail;
+	rail->rail_data_sender.send_rail_vchannel_data =
+			rail_plugin_send_vchannel_data;
+
+
+	rail->session = rail_core_session_new(&rail->rail_data_sender,
+			&rail->rail_event_sender);
 
 	svc_plugin_init((rdpSvcPlugin*)rail, pEntryPoints);
 
