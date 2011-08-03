@@ -102,10 +102,10 @@ free_rail_unicode_string(RAIL_UNICODE_STRING * string)
 		string->length = 0;
 	}
 }
-// Used by 'rail_send_vchannel_' routines for sending constructed RAIL PDU to
+// Used by 'rail_vchannel_send_' routines for sending constructed RAIL PDU to
 // the 'rail' channel
 static void
-rail_send_vchannel_order_data(
+rail_vchannel_send_order_data(
 		RAIL_SESSION * session,
 		uint16 order_type,
 		void*  allocated_order_data,
@@ -139,7 +139,7 @@ rail_send_vchannel_order_data(
  * with the Handshake PDU.
  */
 void
-rail_send_vchannel_handshake_order(
+rail_vchannel_send_handshake_order(
 		RAIL_SESSION * session,
 		uint32 build_number
 		)
@@ -153,7 +153,7 @@ rail_send_vchannel_handshake_order(
 
 	stream_write_uint32(s, build_number);
 
-	rail_send_vchannel_order_data(session, RDP_RAIL_ORDER_HANDSHAKE, data,
+	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_HANDSHAKE, data,
 			data_length);
 }
 //------------------------------------------------------------------------------
@@ -162,7 +162,7 @@ rail_send_vchannel_handshake_order(
  * when a local RAIL window on the client is activated or deactivated.
  */
 void
-rail_send_vchannel_activate_order(
+rail_vchannel_send_activate_order(
 		RAIL_SESSION * session,
 		uint32 window_id,
 		uint8 enabled
@@ -178,7 +178,7 @@ rail_send_vchannel_activate_order(
 	stream_write_uint32(s, window_id);
 	stream_write_uint8(s, enabled);
 
-	rail_send_vchannel_order_data(session, RDP_RAIL_ORDER_ACTIVATE, data,
+	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_ACTIVATE, data,
 			data_length);
 }
 //------------------------------------------------------------------------------
@@ -187,7 +187,7 @@ rail_send_vchannel_activate_order(
  * remote application launch on the server.
  * */
 void
-rail_send_vchannel_exec_order(
+rail_vchannel_send_exec_order(
 		RAIL_SESSION * session,
 		uint16 flags,
 		RAIL_UNICODE_STRING* exe_or_file,
@@ -224,7 +224,7 @@ rail_send_vchannel_exec_order(
 	write_rail_unicode_string_content(s, working_directory);
 	write_rail_unicode_string_content(s, arguments);
 
-	rail_send_vchannel_order_data(session, RDP_RAIL_ORDER_EXEC, data,
+	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_EXEC, data,
 			data_length);
 }
 //------------------------------------------------------------------------------
@@ -257,7 +257,7 @@ size_t get_sysparam_size_in_rdp_stream(RAIL_CLIENT_SYSPARAM * sysparam)
  * synchronize system parameters on the server with those on the client.
  */
 void
-rail_send_vchannel_client_sysparam_update_order(
+rail_vchannel_send_client_sysparam_update_order(
 		RAIL_SESSION * session,
 		RAIL_CLIENT_SYSPARAM* sysparam
 		)
@@ -319,7 +319,7 @@ rail_send_vchannel_client_sysparam_update_order(
 		ASSERT(!"Unknown sysparam type");
 	};
 
-	rail_send_vchannel_order_data(session, RDP_RAIL_ORDER_SYSPARAM, data,
+	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_SYSPARAM, data,
 			data_length);
 }
 //------------------------------------------------------------------------------
@@ -329,7 +329,7 @@ rail_send_vchannel_client_sysparam_update_order(
  * window, such as minimize or maximize.
  */
 void
-rail_send_vchannel_syscommand_order(
+rail_vchannel_send_syscommand_order(
 		RAIL_SESSION * session,
 		uint32 window_id,
 		uint16 command
@@ -345,7 +345,7 @@ rail_send_vchannel_syscommand_order(
 	stream_write_uint32(s, window_id);
 	stream_write_uint16(s, command);
 
-	rail_send_vchannel_order_data(session, RDP_RAIL_ORDER_SYSCOMMAND, data,
+	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_SYSCOMMAND, data,
 			data_length);
 }
 //------------------------------------------------------------------------------
@@ -356,7 +356,7 @@ rail_send_vchannel_syscommand_order(
  * the Notify Event PDU.
  * */
 void
-rail_send_vchannel_notify_event_order(
+rail_vchannel_send_notify_event_order(
 		RAIL_SESSION * session,
 		uint32 window_id,
 		uint32 notify_icon_id,
@@ -374,7 +374,7 @@ rail_send_vchannel_notify_event_order(
 	stream_write_uint32(s, notify_icon_id);
 	stream_write_uint32(s, message);
 
-	rail_send_vchannel_order_data(session, RDP_RAIL_ORDER_NOTIFY_EVENT, data,
+	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_NOTIFY_EVENT, data,
 			data_length);
 }
 //------------------------------------------------------------------------------
@@ -384,7 +384,7 @@ rail_send_vchannel_notify_event_order(
  * locally moved or resized window's position to the server by using this packet.
  * The server uses this information to reposition its window.*/
 void
-rail_send_vchannel_client_windowmove_order(
+rail_vchannel_send_client_windowmove_order(
 		RAIL_SESSION * session,
 		uint32 window_id,
 		RAIL_RECT_16 * new_position
@@ -403,7 +403,7 @@ rail_send_vchannel_client_windowmove_order(
 	stream_write_uint16(s, new_position->right);
 	stream_write_uint16(s, new_position->bottom);
 
-	rail_send_vchannel_order_data(session, RDP_RAIL_ORDER_WINDOWMOVE, data,
+	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_WINDOWMOVE, data,
 			data_length);
 }
 //------------------------------------------------------------------------------
@@ -412,7 +412,7 @@ rail_send_vchannel_client_windowmove_order(
  * information about RAIL client state and features supported by the client.
  * */
 void
-rail_send_vchannel_client_information_order(
+rail_vchannel_send_client_information_order(
 		RAIL_SESSION * session,
 		uint32 flags
 		)
@@ -426,7 +426,7 @@ rail_send_vchannel_client_information_order(
 
 	stream_write_uint32(s, flags);
 
-	rail_send_vchannel_order_data(session, RDP_RAIL_ORDER_CLIENTSTATUS, data,
+	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_CLIENTSTATUS, data,
 			data_length);
 }
 //------------------------------------------------------------------------------
@@ -437,7 +437,7 @@ rail_send_vchannel_client_information_order(
  * the System menu PDU.
  */
 void
-rail_send_vchannel_client_system_menu_order(
+rail_vchannel_send_client_system_menu_order(
 		RAIL_SESSION * session,
 		uint32 window_id,
 		uint16 left,
@@ -455,7 +455,7 @@ rail_send_vchannel_client_system_menu_order(
 	stream_write_uint16(s, left);
 	stream_write_uint16(s, top);
 
-	rail_send_vchannel_order_data(session, RDP_RAIL_ORDER_SYSMENU, data,
+	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_SYSMENU, data,
 			data_length);
 }
 //------------------------------------------------------------------------------
@@ -467,7 +467,7 @@ rail_send_vchannel_client_system_menu_order(
  * This PDU contains information about the language bar status.
  * */
 void
-rail_send_vchannel_client_langbar_information_order(
+rail_vchannel_send_client_langbar_information_order(
 		RAIL_SESSION * session,
 		uint32 langbar_status
 		)
@@ -481,7 +481,7 @@ rail_send_vchannel_client_langbar_information_order(
 
 	stream_write_uint32(s, langbar_status);
 
-	rail_send_vchannel_order_data(session, RDP_RAIL_ORDER_LANGBARINFO, data,
+	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_LANGBARINFO, data,
 			data_length);
 }
 //------------------------------------------------------------------------------
@@ -491,7 +491,7 @@ rail_send_vchannel_client_langbar_information_order(
  * that the window SHOULD <15> have on the client.
  * */
 void
-rail_send_vchannel_get_appid_req_order(
+rail_vchannel_send_get_appid_req_order(
 		RAIL_SESSION * session,
 		uint32 window_id
 		)
@@ -505,15 +505,15 @@ rail_send_vchannel_get_appid_req_order(
 
 	stream_write_uint32(s, window_id);
 
-	rail_send_vchannel_order_data(session, RDP_RAIL_ORDER_GET_APPID_REQ, data,
+	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_GET_APPID_REQ, data,
 			data_length);
 }
 //------------------------------------------------------------------------------
 /*
- * Look at rail_send_vchannel_handshake_order(...)
+ * Look at rail_vchannel_send_handshake_order(...)
  */
 void
-rail_process_vchannel_handshake_order(
+rail_vchannel_process_handshake_order(
 		RAIL_SESSION* session,
 		STREAM* s
 		)
@@ -530,7 +530,7 @@ rail_process_vchannel_handshake_order(
  * attempt to launch the requested executable.
  */
 void
-rail_process_vchannel_exec_result_order(
+rail_vchannel_process_exec_result_order(
 		RAIL_SESSION* session,
 		STREAM* s
 		)
@@ -556,7 +556,7 @@ rail_process_vchannel_exec_result_order(
  * synchronize system parameters on the client with those on the server.
  */
 void
-rail_process_vchannel_server_sysparam_update_order(
+rail_vchannel_process_server_sysparam_update_order(
 		RAIL_SESSION* session,
 		STREAM* s
 		)
@@ -596,7 +596,7 @@ rail_process_vchannel_server_sysparam_update_order(
  *
  */
 void
-rail_process_vchannel_server_movesize_order(
+rail_vchannel_process_server_movesize_order(
 		RAIL_SESSION* session,
 		STREAM* s
 		)
@@ -624,7 +624,7 @@ rail_process_vchannel_server_movesize_order(
  * which the window can be moved or sized.
  */
 void
-rail_process_vchannel_server_minmax_info_order(
+rail_vchannel_process_server_minmax_info_order(
 		RAIL_SESSION* session,
 		STREAM* s
 		)
@@ -658,7 +658,7 @@ rail_process_vchannel_server_minmax_info_order(
  *The Language Bar Information PDU is used to set the language bar status.
  */
 void
-rail_process_vchannel_server_langbar_info_order(
+rail_vchannel_process_server_langbar_info_order(
 		RAIL_SESSION* session,
 		STREAM* s
 		)
@@ -677,7 +677,7 @@ rail_process_vchannel_server_langbar_info_order(
  * SHOULD have on the client. The client MAY ignore this PDU.
  */
 static void
-rail_process_vchannel_server_get_appid_resp_order(
+rail_vchannel_process_server_get_appid_resp_order(
 		RAIL_SESSION* session,
 		STREAM* s
 		)
@@ -695,68 +695,57 @@ rail_process_vchannel_server_get_appid_resp_order(
 	free_rail_unicode_string(&app_id);
 }
 //------------------------------------------------------------------------------
-static void
-rail_channel_process_received_data(
+void
+rail_vchannel_process_received_vchannel_data(
 		RAIL_SESSION * session,
-		void*  data,
-		size_t length
+		STREAM* s
 		)
 {
-	STREAM st_stream = {0};
-	STREAM* s = &st_stream;
+	size_t length = 0;
 	uint16 order_type = 0;
 	uint16 order_length = 0;
 
-	stream_init_by_allocated_data(s, data, length);
+	length = ((s->data + s->size) - s->p);
 
 	stream_read_uint16(s, order_type);   /* orderType */
 	stream_read_uint16(s, order_length); /* orderLength */
 
-	DEBUG_RAIL("rail_channel_process_received_data: session=0x%p data_size=%d "
-			    "orderType=0x%X orderLength=0x%X",
+
+	DEBUG_RAIL("rail_on_channel_data_received: session=0x%p data_size=%d "
+			    "orderType=0x%X orderLength=%d",
 			    session,
 			    length,
 			    order_type,
 			    order_length
 			    );
 
-	//TODO: ASSERT((orderLength - 4) <= ((uint8*)s->p - (uint8*)s->data) );
-
 	switch (order_type)
 	{
 	case RDP_RAIL_ORDER_HANDSHAKE:
-		rail_process_vchannel_handshake_order(session, s);
+		rail_vchannel_process_handshake_order(session, s);
 		break;
 	case RDP_RAIL_ORDER_EXEC_RESULT:
-		rail_process_vchannel_exec_result_order(session, s);
+		rail_vchannel_process_exec_result_order(session, s);
 		break;
 	case RDP_RAIL_ORDER_SYSPARAM:
-		rail_process_vchannel_server_sysparam_update_order(session, s);
+		rail_vchannel_process_server_sysparam_update_order(session, s);
 		break;
 	case RDP_RAIL_ORDER_LOCALMOVESIZE:
-		rail_process_vchannel_server_movesize_order(session, s);
+		rail_vchannel_process_server_movesize_order(session, s);
 		break;
 	case RDP_RAIL_ORDER_MINMAXINFO:
-		rail_process_vchannel_server_minmax_info_order(session, s);
+		rail_vchannel_process_server_minmax_info_order(session, s);
 		break;
 	case RDP_RAIL_ORDER_LANGBARINFO:
-		rail_process_vchannel_server_langbar_info_order(session, s);
+		rail_vchannel_process_server_langbar_info_order(session, s);
 		break;
 	case RDP_RAIL_ORDER_GET_APPID_RESP:
-		rail_process_vchannel_server_get_appid_resp_order(session, s);
+		rail_vchannel_process_server_get_appid_resp_order(session, s);
 		break;
 	default:
-		ASSERT(!"Undocumented RAIL channels server PDU order_type");
+		DEBUG_RAIL("rail_on_channel_data_received: "
+				"Undocumented RAIL server PDU: order_type=0x%X",
+				order_type);
 	}
 }
 //------------------------------------------------------------------------------
-void
-rail_on_channel_data_received(
-		RAIL_SESSION * rail_session,
-		void*  data,
-		size_t length
-		)
-{
-	rail_channel_process_received_data(rail_session, data, length);
-}
-

@@ -51,17 +51,10 @@ static void rail_plugin_process_connect(rdpSvcPlugin* plugin)
 	rail_core_on_channel_connected(rail_plugin->session);
 }
 //------------------------------------------------------------------------------
-static void 
-rail_plugin_send_vchannel_event(
-	void* rail_plugin_object
-	)
+static void rail_plugin_process_terminate(rdpSvcPlugin* plugin)
 {
-	// TODO: Create event exchange interface with UI.
-	FRDP_EVENT* event;
-	railPlugin* plugin = (railPlugin*)rail_plugin_object;
-
-	event = freerdp_event_new(FRDP_EVENT_TYPE_DEBUG, NULL, NULL);
-	svc_plugin_send_event((rdpSvcPlugin*)plugin, event);
+	DEBUG_RAIL("rail_plugin_process_terminate\n");
+	xfree(plugin);
 }
 //------------------------------------------------------------------------------
 static void
@@ -79,31 +72,87 @@ rail_plugin_send_vchannel_data(
 	svc_plugin_send((rdpSvcPlugin*)plugin, s);
 }
 //------------------------------------------------------------------------------
-static void rail_plugin_process_receive(rdpSvcPlugin* plugin, STREAM* data_in)
+static void
+rail_plugin_process_received_vchannel_data(
+	rdpSvcPlugin* plugin,
+	STREAM* data_in
+	)
 {
-	STREAM* data_out;
+	railPlugin* rail_plugin = (railPlugin*)plugin;
 
-	DEBUG_RAIL("rail_plugin_process_receive: size %d", stream_get_size(data_in));
+	DEBUG_RAIL("rail_plugin_process_receive: size=%d", stream_get_size(data_in));
+
+	rail_vchannel_process_received_vchannel_data(rail_plugin->session, data_in);
 	stream_free(data_in);
-
-	data_out = stream_new(8);
-	stream_write(data_out, "senddata", 8);
-	svc_plugin_send(plugin, data_out);
 }
 //------------------------------------------------------------------------------
-static void rail_plugin_process_event(rdpSvcPlugin* plugin, FRDP_EVENT* event)
+static void
+on_free_rail_vchannel_event(
+	FRDP_EVENT* event
+	)
 {
-	DEBUG_RAIL("rail_plugin_process_event: event_type %d\n", event->event_type);
+	ASSERT(event->event_type == FRDP_EVENT_TYPE_RAIL_VCHANNEL_2_UI);
+
+	RAIL_VCHANNEL_EVENT* rail_event = (RAIL_VCHANNEL_EVENT*)event;
+
+	int i = 0;
+	void * free_pointers[] =
+	{
+		(void *)rail_event->param.app_response_info.application_id,
+		(void *)rail_event->param.exec_result_info.exe_or_file,
+		(void *)rail_event
+	};
+
+	for (i = 0; i < RAIL_ARRAY_SIZE(free_pointers); i++)
+	{
+		if (free_pointers != NULL)
+		{
+			xfree(free_pointers[i]);
+			free_pointers[i] = NULL;
+		}
+	}
+}
+//------------------------------------------------------------------------------
+static void
+rail_plugin_send_vchannel_event(
+	void* rail_plugin_object,
+	RAIL_VCHANNEL_EVENT* event
+	)
+{
+	railPlugin* plugin = (railPlugin*)rail_plugin_object;
+	RAIL_VCHANNEL_EVENT* payload = NULL;
+	FRDP_EVENT* out_event = NULL;
+
+	payload = xnew(RAIL_VCHANNEL_EVENT);
+	memset(payload, 0, sizeof(RAIL_VCHANNEL_EVENT));
+	memcpy(payload, event, sizeof(RAIL_VCHANNEL_EVENT));
+
+	out_event = freerdp_event_new(FRDP_EVENT_TYPE_RAIL_VCHANNEL_2_UI,
+			on_free_rail_vchannel_event,
+			payload);
+
+	svc_plugin_send_event((rdpSvcPlugin*)plugin, out_event);
+}
+//------------------------------------------------------------------------------
+static void
+rail_plugin_process_event(
+	rdpSvcPlugin* plugin,
+	FRDP_EVENT* event
+	)
+{
+	RAIL_UI_EVENT* rail_ui_event = NULL;
+	railPlugin* rail_plugin = NULL;
+
+	DEBUG_RAIL("rail_plugin_process_event: event_type=%d\n", event->event_type);
+
+	rail_plugin = (railPlugin*)plugin;
+	rail_ui_event = (RAIL_UI_EVENT*)event->user_data;
+
+	if (event->event_type == FRDP_EVENT_TYPE_RAIL_UI_2_VCHANNEL)
+	{
+		rail_core_handle_ui_event(rail_plugin->session, rail_ui_event);
+	}
 	freerdp_event_free(event);
-
-	event = freerdp_event_new(FRDP_EVENT_TYPE_DEBUG, NULL, NULL);
-	svc_plugin_send_event(plugin, event);
-}
-//------------------------------------------------------------------------------
-static void rail_plugin_process_terminate(rdpSvcPlugin* plugin)
-{
-	DEBUG_RAIL("rail_plugin_process_terminate\n");
-	xfree(plugin);
 }
 //------------------------------------------------------------------------------
 int VirtualChannelEntry(PCHANNEL_ENTRY_POINTS pEntryPoints)
@@ -119,9 +168,10 @@ int VirtualChannelEntry(PCHANNEL_ENTRY_POINTS pEntryPoints)
 	strcpy(rail->plugin.channel_def.name, "rail");
 
 	rail->plugin.connect_callback = rail_plugin_process_connect;
-	rail->plugin.receive_callback = rail_plugin_process_receive;
-	rail->plugin.event_callback = rail_plugin_process_event;
 	rail->plugin.terminate_callback = rail_plugin_process_terminate;
+
+	rail->plugin.receive_callback = rail_plugin_process_received_vchannel_data;
+	rail->plugin.event_callback = rail_plugin_process_event;
 
 	rail->rail_event_sender.event_sender_object = rail;
 	rail->rail_event_sender.send_rail_vchannel_event =

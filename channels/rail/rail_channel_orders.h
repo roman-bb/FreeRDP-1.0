@@ -24,27 +24,27 @@
 #include "rail_core.h"
 
 void
-rail_send_vchannel_handshake_order(
+rail_vchannel_send_handshake_order(
 		RAIL_SESSION * session,
 		uint32 build_number
 		);
 
 void
-rail_send_vchannel_client_information_order(
+rail_vchannel_send_client_information_order(
 		RAIL_SESSION * session,
 		uint32 flags
 		);
 
 
 void
-rail_send_vchannel_activate_order(
+rail_vchannel_send_activate_order(
 		RAIL_SESSION * session,
 		uint32 window_id,
 		uint8 enabled
 		);
 
 void
-rail_send_vchannel_exec_order(
+rail_vchannel_send_exec_order(
 		RAIL_SESSION * session,
 		uint16 flags,
 		RAIL_UNICODE_STRING* exe_or_file,
@@ -53,20 +53,20 @@ rail_send_vchannel_exec_order(
 		);
 
 void
-rail_send_vchannel_client_sysparam_update_order(
+rail_vchannel_send_client_sysparam_update_order(
 		RAIL_SESSION * session,
 		RAIL_CLIENT_SYSPARAM* sysparam
 		);
 
 void
-rail_send_vchannel_syscommand_order(
+rail_vchannel_send_syscommand_order(
 		RAIL_SESSION * session,
 		uint32 window_id,
 		uint16 command
 		);
 
 void
-rail_send_vchannel_notify_event_order(
+rail_vchannel_send_notify_event_order(
 		RAIL_SESSION * session,
 		uint32 window_id,
 		uint32 notify_icon_id,
@@ -74,7 +74,7 @@ rail_send_vchannel_notify_event_order(
 		);
 
 void
-rail_send_vchannel_client_windowmove_order(
+rail_vchannel_send_client_windowmove_order(
 		RAIL_SESSION * session,
 		uint32 window_id,
 		RAIL_RECT_16 * new_position
@@ -82,7 +82,7 @@ rail_send_vchannel_client_windowmove_order(
 
 
 void
-rail_send_vchannel_client_system_menu_order(
+rail_vchannel_send_client_system_menu_order(
 		RAIL_SESSION * session,
 		uint32 window_id,
 		uint16 left,
@@ -90,15 +90,21 @@ rail_send_vchannel_client_system_menu_order(
 		);
 
 void
-rail_send_vchannel_client_langbar_information_order(
+rail_vchannel_send_client_langbar_information_order(
 		RAIL_SESSION * session,
 		uint32 langbar_status
 		);
 
 void
-rail_send_vchannel_get_appid_req_order(
+rail_vchannel_send_get_appid_req_order(
 		RAIL_SESSION * session,
 		uint32 window_id
+		);
+
+void
+rail_vchannel_process_received_vchannel_data(
+		RAIL_SESSION * session,
+		STREAM* s
 		);
 
 #endif //__RAIL_CHANNEL_ORDERS_H

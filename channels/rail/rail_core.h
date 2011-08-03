@@ -75,14 +75,16 @@ typedef struct _RAIL_SERVER_SYSPARAM
 typedef struct _RAIL_VCHANNEL_DATA_SENDER
 {
 	void* data_sender_object;
-	void  (*send_rail_vchannel_data)(void* sender_object, void* data, size_t length);
+	void  (*send_rail_vchannel_data)(void* sender_object, void* data,
+			size_t length);
 
 } RAIL_VCHANNEL_DATA_SENDER;
 
 typedef struct _RAIL_VCHANNEL_EVENT_SENDER
 {
 	void * event_sender_object;
-	void (*send_rail_vchannel_event)(void * ui_event_sender_object);
+	void (*send_rail_vchannel_event)(void * ui_event_sender_object,
+			RAIL_VCHANNEL_EVENT* event);
 }
 RAIL_VCHANNEL_EVENT_SENDER;
 
@@ -122,18 +124,9 @@ rail_core_on_channel_data_received(
 // RAIL Core Handlers for events from UI
 
 void
-rail_core_handle_ui_update_client_system_param(
-	RAIL_SESSION* rail_session,
-	RAIL_CLIENT_SYSPARAM * sysparam
-	);
-
-void
-rail_core_handle_ui_client_execute(
+rail_core_handle_ui_event(
 	RAIL_SESSION* session,
-	boolean exec_or_file_is_file_path,
-	const char* exe_or_file,
-	const char* working_directory,
-	const char* arguments
+	RAIL_UI_EVENT * event
 	);
 
 
