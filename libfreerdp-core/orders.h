@@ -70,6 +70,35 @@
 #define ORDER_FIELD_22				0x200000
 #define ORDER_FIELD_23				0x400000
 
+/* Bitmap Cache Flags */
+#define CBR2_8BPP			0x3
+#define CBR2_16BPP			0x4
+#define CBR2_24BPP			0x5
+#define CBR2_32BPP			0x6
+
+#define CBR2_HEIGHT_SAME_AS_WIDTH	0x01
+#define CBR2_PERSISTENT_KEY_PRESENT	0x02
+#define CBR2_NO_BITMAP_COMPRESSION_HDR	0x08
+#define CBR2_DO_NOT_CACHE		0x10
+
+#define CBR23_8BPP			0x3
+#define CBR23_16BPP			0x4
+#define CBR23_24BPP			0x5
+#define CBR23_32BPP			0x6
+
+#define CBR3_IGNORABLE_FLAG		0x08
+#define CBR3_DO_NOT_CACHE		0x10
+
+#define SO_FLAG_DEFAULT_PLACEMENT	0x01
+#define SO_HORIZONTAL			0x02
+#define SO_VERTICAL			0x04
+#define SO_REVERSED			0x08
+#define SO_ZERO_BEARINGS		0x10
+#define SO_CHAR_INC_EQUAL_BM_BASE	0x20
+#define SO_MAXEXT_EQUAL_BM_SIDE		0x40
+
+#define SCREEN_BITMAP_SURFACE		0xFFFF
+
 /* Order Classes */
 #define ORDER_PRIMARY_CLASS			0x01
 #define ORDER_SECONDARY_CLASS 			0x03
@@ -160,7 +189,7 @@
 
 /* Alternate Secondary Drawing Orders */
 #define ORDER_TYPE_SWITCH_SURFACE		0x00
-#define ORDER_TYPE_CREATE_OFFSCR_BITMAP		0x01
+#define ORDER_TYPE_CREATE_OFFSCREEN_BITMAP	0x01
 #define ORDER_TYPE_STREAM_BITMAP_FIRST		0x02
 #define ORDER_TYPE_STREAM_BITMAP_NEXT		0x03
 #define ORDER_TYPE_CREATE_NINE_GRID_BITMAP	0x04
@@ -175,5 +204,49 @@
 #define ORDER_TYPE_FRAME_MARKER			0x0D
 
 void update_recv_order(rdpUpdate* update, STREAM* s);
+
+void update_read_dstblt_order(STREAM* s, ORDER_INFO* orderInfo, DSTBLT_ORDER* dstblt);
+void update_read_patblt_order(STREAM* s, ORDER_INFO* orderInfo, PATBLT_ORDER* patblt);
+void update_read_scrblt_order(STREAM* s, ORDER_INFO* orderInfo, SCRBLT_ORDER* scrblt);
+void update_read_opaque_rect_order(STREAM* s, ORDER_INFO* orderInfo, OPAQUE_RECT_ORDER* opaque_rect);
+void update_read_draw_nine_grid_order(STREAM* s, ORDER_INFO* orderInfo, DRAW_NINE_GRID_ORDER* draw_nine_grid);
+void update_read_multi_dstblt_order(STREAM* s, ORDER_INFO* orderInfo, MULTI_DSTBLT_ORDER* multi_dstblt);
+void update_read_multi_patblt_order(STREAM* s, ORDER_INFO* orderInfo, MULTI_PATBLT_ORDER* multi_patblt);
+void update_read_multi_scrblt_order(STREAM* s, ORDER_INFO* orderInfo, MULTI_SCRBLT_ORDER* multi_scrblt);
+void update_read_multi_opaque_rect_order(STREAM* s, ORDER_INFO* orderInfo, MULTI_OPAQUE_RECT_ORDER* multi_opaque_rect);
+void update_read_multi_draw_nine_grid_order(STREAM* s, ORDER_INFO* orderInfo, MULTI_DRAW_NINE_GRID_ORDER* multi_draw_nine_grid);
+void update_read_line_to_order(STREAM* s, ORDER_INFO* orderInfo, LINE_TO_ORDER* line_to);
+void update_read_polyline_order(STREAM* s, ORDER_INFO* orderInfo, POLYLINE_ORDER* polyline);
+void update_read_memblt_order(STREAM* s, ORDER_INFO* orderInfo, MEMBLT_ORDER* memblt);
+void update_read_mem3blt_order(STREAM* s, ORDER_INFO* orderInfo, MEM3BLT_ORDER* mem3blt);
+void update_read_save_bitmap_order(STREAM* s, ORDER_INFO* orderInfo, SAVE_BITMAP_ORDER* save_bitmap);
+void update_read_glyph_index_order(STREAM* s, ORDER_INFO* orderInfo, GLYPH_INDEX_ORDER* glyph_index);
+void update_read_fast_index_order(STREAM* s, ORDER_INFO* orderInfo, FAST_INDEX_ORDER* fast_index);
+void update_read_fast_glyph_order(STREAM* s, ORDER_INFO* orderInfo, FAST_GLYPH_ORDER* fast_glyph);
+void update_read_polygon_sc_order(STREAM* s, ORDER_INFO* orderInfo, POLYGON_SC_ORDER* polygon_sc);
+void update_read_polygon_cb_order(STREAM* s, ORDER_INFO* orderInfo, POLYGON_CB_ORDER* polygon_cb);
+void update_read_ellipse_sc_order(STREAM* s, ORDER_INFO* orderInfo, ELLIPSE_SC_ORDER* ellipse_sc);
+void update_read_ellipse_cb_order(STREAM* s, ORDER_INFO* orderInfo, ELLIPSE_CB_ORDER* ellipse_cb);
+
+void update_read_cache_bitmap_order(STREAM* s, CACHE_BITMAP_ORDER* cache_bitmap_order, boolean compressed, uint16 flags);
+void update_read_cache_bitmap_v2_order(STREAM* s, CACHE_BITMAP_V2_ORDER* cache_bitmap_v2_order, boolean compressed, uint16 flags);
+void update_read_cache_bitmap_v3_order(STREAM* s, CACHE_BITMAP_V3_ORDER* cache_bitmap_v3_order, boolean compressed, uint16 flags);
+void update_read_cache_color_table_order(STREAM* s, CACHE_COLOR_TABLE_ORDER* cache_color_table_order, uint16 flags);
+void update_read_cache_glyph_order(STREAM* s, CACHE_GLYPH_ORDER* cache_glyph_order, uint16 flags);
+void update_read_cache_glyph_v2_order(STREAM* s, CACHE_GLYPH_V2_ORDER* cache_glyph_v2_order, uint16 flags);
+void update_read_cache_brush_order(STREAM* s, CACHE_BRUSH_ORDER* cache_brush_order, uint16 flags);
+
+void update_read_create_offscreen_bitmap_order(STREAM* s, CREATE_OFFSCREEN_BITMAP_ORDER* create_offscreen_bitmap);
+void update_read_switch_surface_order(STREAM* s, SWITCH_SURFACE_ORDER* switch_surface);
+void update_read_create_nine_grid_bitmap_order(STREAM* s, CREATE_NINE_GRID_BITMAP_ORDER* create_nine_grid_bitmap);
+void update_read_frame_marker_order(STREAM* s, FRAME_MARKER_ORDER* frame_marker);
+void update_read_stream_bitmap_first_order(STREAM* s, STREAM_BITMAP_FIRST_ORDER* stream_bitmap_first);
+void update_read_stream_bitmap_next_order(STREAM* s, STREAM_BITMAP_FIRST_ORDER* stream_bitmap_next);
+void update_read_draw_gdiplus_first_order(STREAM* s, DRAW_GDIPLUS_FIRST_ORDER* draw_gdiplus_first);
+void update_read_draw_gdiplus_next_order(STREAM* s, DRAW_GDIPLUS_NEXT_ORDER* draw_gdiplus_next);
+void update_read_draw_gdiplus_end_order(STREAM* s, DRAW_GDIPLUS_END_ORDER* draw_gdiplus_end);
+void update_read_draw_gdiplus_cache_first_order(STREAM* s, DRAW_GDIPLUS_CACHE_FIRST_ORDER* draw_gdiplus_cache_first);
+void update_read_draw_gdiplus_cache_next_order(STREAM* s, DRAW_GDIPLUS_CACHE_NEXT_ORDER* draw_gdiplus_cache_next);
+void update_read_draw_gdiplus_cache_end_order(STREAM* s, DRAW_GDIPLUS_CACHE_END_ORDER* draw_gdiplus_cache_end);
 
 #endif /* __ORDERS_H */

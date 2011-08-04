@@ -17,11 +17,13 @@
  * limitations under the License.
  */
 
+#include "config.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <freerdp/utils/stream.h>
 #include <freerdp/utils/memory.h>
+#include <freerdp/utils/hexdump.h>
 
 #include <time.h>
 #include <errno.h>
@@ -30,6 +32,7 @@
 #include <fcntl.h>
 
 #include "tpkt.h"
+#include "fastpath.h"
 #include "credssp.h"
 #include "transport.h"
 
@@ -116,13 +119,6 @@ boolean transport_connect_nla(rdpTransport* transport)
 	return True;
 }
 
-int transport_delay(rdpTransport* transport, STREAM* s)
-{
-	transport_read(transport, s);
-	nanosleep(&transport->ts, NULL);
-	return 0;
-}
-
 int transport_read(rdpTransport* transport, STREAM* s)
 {
 	int status = -1;
@@ -142,6 +138,14 @@ int transport_read(rdpTransport* transport, STREAM* s)
 
 		break;
 	}
+
+#ifdef WITH_DEBUG_TRANSPORT
+	if (status > 0)
+	{
+		printf("Server > Client\n");
+		freerdp_hexdump(s->data, status);
+	}
+#endif
 
 	return status;
 }
@@ -169,6 +173,15 @@ int transport_write(rdpTransport* transport, STREAM* s)
 
 	length = stream_get_length(s);
 	stream_set_pos(s, 0);
+
+#ifdef WITH_DEBUG_TRANSPORT
+	if (length > 0)
+	{
+		printf("Client > Server\n");
+		freerdp_hexdump(s->data, length);
+	}
+#endif
+
 	while (sent < length)
 	{
 		if (transport->layer == TRANSPORT_LAYER_TLS)
@@ -221,8 +234,8 @@ int transport_check_fds(rdpTransport* transport)
 		stream_peek_uint8(transport->recv_buffer, header);
 		if (header == 0x03) /* TPKT */
 			length = tpkt_read_header(transport->recv_buffer);
-		else /* TODO: Fast Path */
-			length = 0;
+		else /* Fast Path */
+			length = fastpath_read_header(transport->recv_buffer, NULL);
 
 		if (length == 0)
 		{
@@ -250,6 +263,8 @@ int transport_check_fds(rdpTransport* transport)
 			stream_copy(transport->recv_buffer, received, pos - length);
 		}
 
+		stream_set_pos(received, length);
+		stream_seal(received);
 		stream_set_pos(received, 0);
 		status = transport->recv_callback(transport, received, transport->recv_extra);
 		stream_free(received);
