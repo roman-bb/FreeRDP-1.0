@@ -248,7 +248,7 @@ size_t get_sysparam_size_in_rdp_stream(RAIL_CLIENT_SYSPARAM * sysparam)
 		}
 	};
 
-	ASSERT(!"Unknown sysparam type");
+	assert(!"Unknown sysparam type");
 	return 0;
 }
 //------------------------------------------------------------------------------
@@ -316,7 +316,7 @@ rail_vchannel_send_client_sysparam_update_order(
 			break;
 		}
 	default:
-		ASSERT(!"Unknown sysparam type");
+		assert(!"Unknown sysparam type");
 	};
 
 	rail_vchannel_send_order_data(session, RDP_RAIL_ORDER_SYSPARAM, data,
@@ -576,7 +576,7 @@ rail_vchannel_process_server_sysparam_update_order(
 		break;
 
 	default:
-		ASSERT(!"Undocumented RAIL server sysparam type");
+		assert(!"Undocumented RAIL server sysparam type");
 		break;
 	};
 

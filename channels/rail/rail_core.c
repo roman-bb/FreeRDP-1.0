@@ -65,7 +65,11 @@ Flow of init stage over channel;
    Client notify UI about success session establishing and go to
    RAIL_ESTABLISHED state.
 */
-
+void init_vchannel_event(RAIL_VCHANNEL_EVENT* event, uint32 event_id)
+{
+	memset(event, 0, sizeof(RAIL_VCHANNEL_EVENT));
+	event->event_id = event_id;
+}
 //------------------------------------------------------------------------------
 void init_rail_string(RAIL_STRING * rail_string, const char * string)
 {
@@ -82,6 +86,11 @@ void rail_string2unicode_string(
 	size_t   result_length = 0;
 	char*    result_buffer = NULL;
 
+	unicode_string->buffer = NULL;
+	unicode_string->length = 0;
+
+	if (string->length == 0) return;
+
 	result_buffer = freerdp_uniconv_out(session->uniconv, (char*)string->buffer,
 			&result_length);
 
@@ -96,6 +105,11 @@ void rail_unicode_string2string(
 	)
 {
 	char*    result_buffer = NULL;
+
+	string->buffer = NULL;
+	string->length = 0;
+
+	if (unicode_string->length == 0) return;
 
 	result_buffer = freerdp_uniconv_in(session->uniconv, unicode_string->buffer,
 			unicode_string->length);
@@ -136,13 +150,13 @@ rail_core_session_free(RAIL_SESSION * rail_session)
 void
 rail_core_on_channel_connected(RAIL_SESSION* session)
 {
-	DEBUG_RAIL("rail_on_channel_connected() called.");
+	DEBUG_RAIL("RAIL channel connected.");
 }
 //------------------------------------------------------------------------------
 void
 rail_core_on_channel_terminated(RAIL_SESSION* session)
 {
-	DEBUG_RAIL("rail_on_channel_terminated() called.");
+	DEBUG_RAIL("RAIL channel terminated.");
 }
 //------------------------------------------------------------------------------
 void
@@ -167,7 +181,7 @@ rail_core_handle_server_hadshake(
 
 	// Step 3. Notify UI about session establishing and about requirements to
 	//         start UI initialization stage.
-	event.event_id = RAIL_VCHANNEL_EVENT_SESSION_ESTABLISHED;
+	init_vchannel_event(&event, RAIL_VCHANNEL_EVENT_SESSION_ESTABLISHED);
 	session->event_sender->send_rail_vchannel_event(
 		session->event_sender->event_sender_object,
 		&event);
@@ -195,7 +209,7 @@ rail_core_handle_exec_result(
 
 	rail_unicode_string2string(session, exe_or_file, &exe_or_file_);
 
-	event.event_id = RAIL_VCHANNEL_EVENT_EXEC_RESULT_RETURNED;
+	init_vchannel_event(&event, RAIL_VCHANNEL_EVENT_EXEC_RESULT_RETURNED);
 	event.param.exec_result_info.flags = flags;
 	event.param.exec_result_info.exec_result = exec_result;
 	event.param.exec_result_info.raw_result = raw_result;
@@ -222,7 +236,7 @@ rail_core_handle_server_sysparam(
 		sysparam->value.screen_saver_enabled,
 		sysparam->value.screen_saver_lock_enabled);
 
-	event.event_id = RAIL_VCHANNEL_EVENT_SERVER_SYSPARAM_RECEIVED;
+	init_vchannel_event(&event, RAIL_VCHANNEL_EVENT_SERVER_SYSPARAM_RECEIVED);
 	event.param.server_param_info.param_type = sysparam->type;
 	event.param.server_param_info.screen_saver_enabled =
 		((sysparam->value.screen_saver_enabled != 0) ? True: False);
@@ -257,9 +271,9 @@ rail_core_handle_server_movesize(
 		pos_y
 		);
 
-	event.event_id = ((move_size_started != 0) ?
+	init_vchannel_event(&event, ((move_size_started != 0) ?
 		RAIL_VCHANNEL_EVENT_MOVESIZE_STARTED:
-		RAIL_VCHANNEL_EVENT_MOVESIZE_FINISHED);
+		RAIL_VCHANNEL_EVENT_MOVESIZE_FINISHED));
 
 	event.param.movesize_info.window_id = window_id;
 	event.param.movesize_info.move_size_type = move_size_type;
@@ -294,7 +308,7 @@ rail_core_handle_server_minmax_info(
 		max_track_width, max_track_height
 		);
 
-	event.event_id = RAIL_VCHANNEL_EVENT_MINMAX_INFO_UPDATED;
+	init_vchannel_event(&event, RAIL_VCHANNEL_EVENT_MINMAX_INFO_UPDATED);
 
 	event.param.minmax_info.window_id = window_id;
 
@@ -325,7 +339,7 @@ rail_core_handle_server_langbar_info(
 		session, langbar_status
 		);
 
-	event.event_id = RAIL_VCHANNEL_EVENT_LANGBAR_STATUS_UPDATED;
+	init_vchannel_event(&event, RAIL_VCHANNEL_EVENT_LANGBAR_STATUS_UPDATED);
 
 	event.param.langbar_info.status = langbar_status;
 
@@ -355,7 +369,7 @@ rail_core_handle_server_get_app_resp(
 
 	rail_unicode_string2string(session, app_id, &app_id_);
 
-	event.event_id = RAIL_VCHANNEL_EVENT_LANGBAR_STATUS_UPDATED;
+	init_vchannel_event(&event, RAIL_VCHANNEL_EVENT_LANGBAR_STATUS_UPDATED);
 
 	event.param.app_response_info.window_id= window_id;
 	event.param.app_response_info.application_id = app_id_.buffer;
@@ -466,7 +480,7 @@ rail_core_handle_ui_update_client_sysparam(
 
 
 	rail_vchannel_send_client_sysparam_update_order(session, &sys_param);
-	free_rail_unicode_string(sys_param.value.high_contrast_system_info.color_scheme);
+	free_rail_unicode_string(&sys_param.value.high_contrast_system_info.color_scheme);
 }
 //------------------------------------------------------------------------------
 static void
@@ -584,7 +598,7 @@ rail_core_handle_ui_event(
 	{RAIL_UI_EVENT_NOTIFY, rail_core_handle_ui_notify},
 	{RAIL_UI_EVENT_WINDOW_MOVE, rail_core_handle_ui_window_move},
 	{RAIL_UI_EVENT_SYSTEM_MENU, rail_core_handle_ui_system_menu},
-	{RAIL_UI_EVENT_SYSTEM_MENU, rail_core_handle_ui_system_menu},
+	{RAIL_UI_EVENT_LANGBAR_INFO, rail_core_handle_ui_system_menu},
 	{RAIL_UI_EVENT_GET_APP_ID, rail_core_handle_ui_get_app_id}
 	};
 

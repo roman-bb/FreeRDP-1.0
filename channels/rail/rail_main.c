@@ -91,26 +91,21 @@ on_free_rail_vchannel_event(
 	FRDP_EVENT* event
 	)
 {
-	ASSERT(event->event_type == FRDP_EVENT_TYPE_RAIL_VCHANNEL_2_UI);
+	assert(event->event_type == FRDP_EVENT_TYPE_RAIL_VCHANNEL_2_UI);
 
-	RAIL_VCHANNEL_EVENT* rail_event = (RAIL_VCHANNEL_EVENT*)event;
+	RAIL_VCHANNEL_EVENT* rail_event = (RAIL_VCHANNEL_EVENT*)event->user_data;
 
-	int i = 0;
-	void * free_pointers[] =
+	if (rail_event->event_id == RAIL_VCHANNEL_EVENT_APP_RESPONSE_RECEIVED)
 	{
-		(void *)rail_event->param.app_response_info.application_id,
-		(void *)rail_event->param.exec_result_info.exe_or_file,
-		(void *)rail_event
-	};
-
-	for (i = 0; i < RAIL_ARRAY_SIZE(free_pointers); i++)
-	{
-		if (free_pointers != NULL)
-		{
-			xfree(free_pointers[i]);
-			free_pointers[i] = NULL;
-		}
+		xfree((void*)rail_event->param.app_response_info.application_id);
 	}
+
+	if (rail_event->event_id == RAIL_VCHANNEL_EVENT_EXEC_RESULT_RETURNED)
+	{
+		xfree((void*)rail_event->param.exec_result_info.exe_or_file);
+	}
+
+	xfree(rail_event);
 }
 //------------------------------------------------------------------------------
 static void
@@ -159,6 +154,8 @@ int VirtualChannelEntry(PCHANNEL_ENTRY_POINTS pEntryPoints)
 {
 	railPlugin* rail;
 
+	DEBUG_RAIL("RAIL plugin VirtualChannelEntry started.");
+
 	rail = (railPlugin*)xmalloc(sizeof(railPlugin));
 	memset(rail, 0, sizeof(railPlugin));
 
@@ -187,5 +184,6 @@ int VirtualChannelEntry(PCHANNEL_ENTRY_POINTS pEntryPoints)
 
 	svc_plugin_init((rdpSvcPlugin*)rail, pEntryPoints);
 
+	DEBUG_RAIL("RAIL plugin VirtualChannelEntry finished.");
 	return 1;
 }

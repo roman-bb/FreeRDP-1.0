@@ -22,6 +22,7 @@
 #define __RAIL_H
 
 #include <freerdp/utils/debug.h>
+#include <assert.h>
 
 #ifdef WITH_DEBUG_RAIL
 //#pragma message "Compiling DEBUG_RAIL enabled."
@@ -301,6 +302,7 @@ enum RAIL_UI_EVENT
 	RAIL_UI_EVENT_NOTIFY,
 	RAIL_UI_EVENT_WINDOW_MOVE,
 	RAIL_UI_EVENT_SYSTEM_MENU,
+	RAIL_UI_EVENT_LANGBAR_INFO,
 	RAIL_UI_EVENT_GET_APP_ID
 };
 
@@ -371,6 +373,12 @@ typedef struct _RAIL_UI_EVENT
 			uint16 left;
 			uint16 top;
 		} system_menu_info;
+
+		struct
+		{
+			uint32 status;
+		} langbar_info;
+
 
 		struct
 		{

@@ -23,4 +23,4 @@ int init_rail_suite(void);
 int clean_rail_suite(void);
 int add_rail_suite(void);
 
-void test_rail(void);
+void test_rail_plugin(void);
